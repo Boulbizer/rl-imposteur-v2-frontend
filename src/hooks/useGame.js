@@ -41,13 +41,16 @@ export function useGame() {
 
     socket.on('room:created', ({ room }) => {
       setRoom(room)
-      setAmHost(true)   // ← ajouter cette ligne
+      setAmHost(true)
+      saveToSession('rl_amHost', true)        // ← persisté explicitement
       setLoading(false)
       navigate(`/room/${room.id}`)
     })
 
     socket.on('room:joined', ({ room }) => {
       setRoom(room)
+      setAmHost(false)                        // ← fix : on n'est PAS l'hôte quand on rejoint
+      saveToSession('rl_amHost', false)       // ← efface toute ancienne valeur dans sessionStorage
       setLoading(false)
     })
 
