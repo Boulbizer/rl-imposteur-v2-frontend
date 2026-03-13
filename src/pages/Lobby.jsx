@@ -61,7 +61,10 @@ export default function Lobby() {
   const [joining, setJoining] = useState(false)
 
   // Détermine si le joueur a déjà rejoint la salle
-  const hasJoined = room && room.players.some(p => p.id === socketId)
+   const hasJoined = room && (
+  room.players.some(p => p.id === socketId) ||
+  room.players.some(p => p.name === myName)
+  )
   const isHost = room && room.hostId === socketId
   const inviteUrl = `${window.location.origin}/room/${roomId}`
 
