@@ -68,12 +68,12 @@ export default function Lobby() {
   const isHost = room && room.hostId === socketId
   const inviteUrl = `${window.location.origin}/room/${roomId}`
 
-  // Si on n'est pas encore dans la salle (arrivée via lien), on affiche le formulaire de pseudo
-  useEffect(() => {
-    // Si la salle existe et qu'on y est déjà → rien à faire
-    if (hasJoined) return
-    // Sinon on attend que l'utilisateur entre son pseudo
-  }, [hasJoined])
+  // Auto-rejoindre la salle si on a déjà un pseudo (hôte ou joueur qui revient)
+useEffect(() => {
+  if (!myName) return        // vrai visiteur via lien → affiche le formulaire
+  if (!roomId) return
+  joinRoom(roomId, myName)   // se reconnecte automatiquement avec le bon pseudo
+}, [roomId, myName])
 
   function handleJoin(e) {
     e.preventDefault()
