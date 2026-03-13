@@ -26,7 +26,14 @@ export default function Reveal() {
     if (roomId) requestScores(roomId)
   }, [roomId, requestScores])
 
-  if (!results || !room) return null
+  if (!results) return (
+    <div className="page">
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <div className="spinner" style={{ width: 32, height: 32, borderWidth: 3 }} />
+        <p style={{ color: 'var(--text-muted)' }}>Chargement des résultats…</p>
+      </div>
+    </div>
+  )
 
   const { impostorFound, impostorName, accusedName, pointsAwarded, players, tally } = results
   const myPoints = socketId ? (pointsAwarded[socketId] || 0) : 0
