@@ -1,93 +1,91 @@
 // hooks/useGame.js
 // Ce hook centralise TOUTE la logique Socket.io
-// Les pages n'ont qu'à appeler les fonctions qu'il expose
+// L'état est persisté dans sessionStorage pour survivre aux navigations
 
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import socket from '../lib/socket'
 
+function loadFromSession(key, fallback) {
+  try {
+    const val = sessionStorage.getItem(key)
+    return val ? JSON.parse(val) : fallback
+  } catch { return fallback }
+}
+
+function saveToSession(key, value) {
+  try { sessionStorage.setItem(key, JSON.stringify(value)) } catch {}
+}
+
 export function useGame() {
   const navigate = useNavigate()
 
-  const [room, setRoom]           = useState(null)   // données de la salle
-  const [myName, setMyName]       = useState('')      // mon pseudo
-  const [isImpostor, setIsImpostor] = useState(false) // mon rôle secret
-  const [error, setError]         = useState('')      // message d'erreur
-  const [votesCount, setVotesCount] = useState(0)    // votes reçus
-  const [results, setResults]     = useState(null)   // résultats du vote
-  const [scores, setScores]       = useState([])     // scores cumulés
-  const [loading, setLoading]     = useState(false)
+  const [room, setRoom]             = useState(() => loadFromSession('rl_room', null))
+  const [myName, setMyName]         = useState(() => loadFromSession('rl_myName', ''))
+  const [isImpostor, setIsImpostor] = useState(() => loadFromSession('rl_isImpostor', false))
+  const [error, setError]           = useState('')
+  const [votesCount, setVotesCount] = useState(0)
+  const [results, setResults]       = useState(() => loadFromSession('rl_results', null))
+  const [scores, setScores]         = useState([])
+  const [loading, setLoading]       = useState(false)
 
-  // Connexion Socket.io au montage
+  useEffect(() => { saveToSession('rl_room', room) }, [room])
+  useEffect(() => { saveToSession('rl_myName', myName) }, [myName])
+  useEffect(() => { saveToSession('rl_isImpostor', isImpostor) }, [isImpostor])
+  useEffect(() => { saveToSession('rl_results', results) }, [results])
+
   useEffect(() => {
     if (!socket.connected) socket.connect()
 
-    // ── Écoute des événements serveur ──────────────────────────────
-
-    // Salle créée avec succès (après room:create)
     socket.on('room:created', ({ room }) => {
       setRoom(room)
       setLoading(false)
       navigate(`/room/${room.id}`)
     })
 
-    // On a rejoint une salle (après room:join)
     socket.on('room:joined', ({ room }) => {
       setRoom(room)
       setLoading(false)
     })
 
-    // Liste des joueurs mise à jour (quelqu'un rejoint ou quitte)
-    socket.on('room:updated', ({ room }) => {
-      setRoom(room)
-    })
+    socket.on('room:updated', ({ room }) => { setRoom(room) })
 
-    // Erreur de salle (salle pleine, déjà démarrée…)
     socket.on('room:error', ({ message }) => {
       setError(message)
       setLoading(false)
     })
 
-    // Partie lancée → on reçoit notre rôle secret
     socket.on('game:started', ({ room, isImpostor }) => {
       setRoom(room)
       setIsImpostor(isImpostor)
       navigate(`/room/${room.id}/playing`)
     })
 
-    // Phase de vote déclenchée par l'hôte
     socket.on('voting:started', ({ room }) => {
       setRoom(room)
       setVotesCount(0)
       navigate(`/room/${room.id}/vote`)
     })
 
-    // Un vote a été enregistré (indicateur de progression)
-    socket.on('vote:registered', ({ votesCount }) => {
-      setVotesCount(votesCount)
-    })
+    socket.on('vote:registered', ({ votesCount }) => { setVotesCount(votesCount) })
 
-    // Tous ont voté → résultats disponibles
     socket.on('reveal:result', ({ results }) => {
       setResults(results)
-      navigate(`/room/${room?.id}/reveal`)
+      const currentRoom = loadFromSession('rl_room', null)
+      if (currentRoom) navigate(`/room/${currentRoom.id}/reveal`)
     })
 
-    // Scores cumulés reçus depuis Supabase
-    socket.on('scores:data', ({ scores }) => {
-      setScores(scores)
-    })
+    socket.on('scores:data', ({ scores }) => { setScores(scores) })
 
-    // L'hôte a passé à la manche suivante
     socket.on('round:next', ({ room }) => {
       setRoom(room)
       setResults(null)
       setVotesCount(0)
       setIsImpostor(false)
+      saveToSession('rl_results', null)
       navigate(`/room/${room.id}`)
     })
 
-    // Nettoyage : retire les listeners au démontage
     return () => {
       socket.off('room:created')
       socket.off('room:joined')
@@ -100,9 +98,7 @@ export function useGame() {
       socket.off('scores:data')
       socket.off('round:next')
     }
-  }, [navigate, room?.id])
-
-  // ── Actions émises vers le serveur ────────────────────────────────
+  }, [navigate])
 
   const createRoom = useCallback((playerName) => {
     setError('')
@@ -118,45 +114,15 @@ export function useGame() {
     socket.emit('room:join', { roomId, playerName })
   }, [])
 
-  const startGame = useCallback((roomId) => {
-    socket.emit('game:start', { roomId })
-  }, [])
-
-  const endGame = useCallback((roomId) => {
-    socket.emit('game:end', { roomId })
-  }, [])
-
-  const castVote = useCallback((roomId, targetId) => {
-    socket.emit('vote:cast', { roomId, targetId })
-  }, [])
-
-  const requestScores = useCallback((roomId) => {
-    socket.emit('scores:request', { roomId })
-  }, [])
-
-  const startNextRound = useCallback((roomId) => {
-    socket.emit('round:next', { roomId })
-  }, [])
+  const startGame  = useCallback((roomId) => { socket.emit('game:start', { roomId }) }, [])
+  const endGame    = useCallback((roomId) => { socket.emit('game:end', { roomId }) }, [])
+  const castVote   = useCallback((roomId, targetId) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
+  const requestScores  = useCallback((roomId) => { socket.emit('scores:request', { roomId }) }, [])
+  const startNextRound = useCallback((roomId) => { socket.emit('round:next', { roomId }) }, [])
 
   return {
-    // État
-    room,
-    myName,
-    isImpostor,
-    error,
-    votesCount,
-    results,
-    scores,
-    loading,
+    room, myName, isImpostor, error, votesCount, results, scores, loading,
     socketId: socket.id,
-    // Actions
-    createRoom,
-    joinRoom,
-    startGame,
-    endGame,
-    castVote,
-    requestScores,
-    startNextRound,
-    setError,
+    createRoom, joinRoom, startGame, endGame, castVote, requestScores, startNextRound, setError,
   }
 }
