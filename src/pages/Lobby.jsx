@@ -88,8 +88,8 @@ export default function Lobby() {
     setTimeout(() => setCopied(false), 2500)
   }
 
-  // ── Si pas encore rejoint → formulaire de pseudo ─────────────────
-  if (!hasJoined) {
+  // Si pas encore rejoint ET qu'on n'a pas de nom (= vrai visiteur via lien)
+  if (!hasJoined && !myName) {
     return (
       <div className="page">
         <div style={{ width: '100%', maxWidth: 420 }} className="fade-up">
