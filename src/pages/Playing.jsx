@@ -4,6 +4,7 @@
 // → l'hôte a le bouton "Partie terminée"
 
 import { useGame } from '../hooks/useGame'
+import socket from '../lib/socket'
 import { useParams } from 'react-router-dom'
 
 export default function Playing() {
@@ -12,7 +13,7 @@ export default function Playing() {
 
   if (!room) return null
 
-  const isHost = room.hostId === socketId
+  const isHost = room.hostId === socket.id
 
   return (
     <div className="page">
