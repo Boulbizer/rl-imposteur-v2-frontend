@@ -81,7 +81,15 @@ export function useGame() {
       if (currentRoom) navigate(`/room/${currentRoom.id}/reveal`)
     })
 
-    socket.on('scores:data', ({ scores }) => { setScores(scores) })
+    // MODIFIÉ : scores:data reçoit maintenant aussi { room } depuis le serveur
+    // → on met à jour la room pour que amHost soit recalculé correctement
+    socket.on('scores:data', ({ scores, room }) => {
+      setScores(scores)
+      if (room) {
+        setRoom(room)
+        saveToSession('rl_room', room)
+      }
+    })
 
     socket.on('round:next', ({ room }) => {
       setRoom(room)
