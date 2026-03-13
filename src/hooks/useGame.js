@@ -121,7 +121,9 @@ export function useGame() {
   const endGame    = useCallback((roomId) => { socket.emit('game:end', { roomId }) }, [])
   const castVote   = useCallback((roomId, targetId) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
   const requestScores  = useCallback((roomId) => { socket.emit('scores:request', { roomId }) }, [])
-  const startNextRound = useCallback((roomId) => { socket.emit('round:next', { roomId }) }, [])
+  const startNextRound = useCallback((roomId, hostName) => {
+  socket.emit('round:next', { roomId, hostName })
+}, [])
 
   return {
     room, myName, isImpostor, error, votesCount, results, scores, loading,
