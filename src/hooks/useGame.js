@@ -58,6 +58,7 @@ export function useGame() {
     socket.on('game:started', ({ room, isImpostor }) => {
       setRoom(room)
       setIsImpostor(isImpostor)
+      saveToSession('rl_isImpostor', isImpostor)
       navigate(`/room/${room.id}/playing`)
     })
 
