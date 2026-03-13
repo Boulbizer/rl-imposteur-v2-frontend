@@ -126,7 +126,7 @@ export default function Scores() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {scores.map((player, i) => {
                 const pct = maxScore > 0 ? (player.total / maxScore) * 100 : 0
-                const isMe = room.players.some(p => p.id === socketId && p.name === player.name)
+                const isMe = player.name === myName
                 return (
                   <div key={player.name} style={{
                     display: 'flex',
