@@ -216,7 +216,7 @@ export default function Scores() {
           <div className="fade-up" style={{ animationDelay: '0.2s', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button
               className="btn btn-primary btn-full neon-pulse"
-              onClick={() => startNextRound(roomId)}
+              onClick={() => startNextRound(roomId, myName)}
               style={{ fontSize: '1rem' }}
             >
               🔄 Lancer la manche {room.round + 1}
