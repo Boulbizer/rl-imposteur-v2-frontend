@@ -23,6 +23,7 @@ export function useGame() {
   const [room, setRoom]             = useState(() => loadFromSession('rl_room', null))
   const [myName, setMyName]         = useState(() => loadFromSession('rl_myName', ''))
   const [isImpostor, setIsImpostor] = useState(() => loadFromSession('rl_isImpostor', false))
+  const [amHost, setAmHost]         = useState(() => loadFromSession('rl_amHost', false))
   const [error, setError]           = useState('')
   const [votesCount, setVotesCount] = useState(0)
   const [results, setResults]       = useState(() => loadFromSession('rl_results', null))
@@ -33,12 +34,14 @@ export function useGame() {
   useEffect(() => { saveToSession('rl_myName', myName) }, [myName])
   useEffect(() => { saveToSession('rl_isImpostor', isImpostor) }, [isImpostor])
   useEffect(() => { saveToSession('rl_results', results) }, [results])
+  useEffect(() => { saveToSession('rl_amHost', amHost) }, [amHost])
 
   useEffect(() => {
     if (!socket.connected) socket.connect()
 
     socket.on('room:created', ({ room }) => {
       setRoom(room)
+      setAmHost(true)   // ← ajouter cette ligne
       setLoading(false)
       navigate(`/room/${room.id}`)
     })
@@ -126,7 +129,7 @@ export function useGame() {
 }, [])
 
   return {
-    room, myName, isImpostor, error, votesCount, results, scores, loading,
+    room, myName, isImpostor, amHost, error, votesCount, results, scores, loading,
     socketId: socket.id,
     createRoom, joinRoom, startGame, endGame, castVote, requestScores, startNextRound, setError,
   }
