@@ -134,9 +134,21 @@ export default function Lobby() {
     )
   }
 
-  // ── Salle d'attente ───────────────────────────────────────────────
+  // ── Chargement en attendant les données de la salle ──────────
+if (!room) {
   return (
-    <div className="page" style={{ alignItems: 'flex-start', paddingTop: '2rem' }}>
+    <div className="page">
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <div className="spinner" style={{ width: 32, height: 32, borderWidth: 3 }} />
+        <p style={{ color: 'var(--text-muted)' }}>Connexion à la salle…</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Salle d'attente ───────────────────────────────────────────
+return (
+  <div className="page" style={{ alignItems: 'flex-start', paddingTop: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
         {/* Header */}
