@@ -84,6 +84,7 @@ export function useGame() {
       setVotesCount(0)
       setIsImpostor(false)
       saveToSession('rl_results', null)
+      saveToSession('rl_isImpostor', false)  // ← efface l'ancien rôle
       navigate(`/room/${room.id}`)
     })
 
