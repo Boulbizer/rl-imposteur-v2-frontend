@@ -23,34 +23,32 @@ export function useGame() {
   const [room, setRoom]             = useState(() => loadFromSession('rl_room', null))
   const [myName, setMyName]         = useState(() => loadFromSession('rl_myName', ''))
   const [isImpostor, setIsImpostor] = useState(() => loadFromSession('rl_isImpostor', false))
-  const [amHost, setAmHost]         = useState(() => loadFromSession('rl_amHost', false))
   const [error, setError]           = useState('')
   const [votesCount, setVotesCount] = useState(0)
   const [results, setResults]       = useState(() => loadFromSession('rl_results', null))
   const [scores, setScores]         = useState([])
   const [loading, setLoading]       = useState(false)
 
+  // amHost est calculé dynamiquement depuis room.hostName
+  // C'est la seule source de vérité fiable : pas de sessionStorage, pas de socket.id
+  const amHost = !!(room && myName && room.hostName === myName)
+
   useEffect(() => { saveToSession('rl_room', room) }, [room])
   useEffect(() => { saveToSession('rl_myName', myName) }, [myName])
   useEffect(() => { saveToSession('rl_isImpostor', isImpostor) }, [isImpostor])
   useEffect(() => { saveToSession('rl_results', results) }, [results])
-  useEffect(() => { saveToSession('rl_amHost', amHost) }, [amHost])
 
   useEffect(() => {
     if (!socket.connected) socket.connect()
 
     socket.on('room:created', ({ room }) => {
       setRoom(room)
-      setAmHost(true)
-      saveToSession('rl_amHost', true)        // ← persisté explicitement
       setLoading(false)
       navigate(`/room/${room.id}`)
     })
 
     socket.on('room:joined', ({ room }) => {
       setRoom(room)
-      setAmHost(false)                        // ← fix : on n'est PAS l'hôte quand on rejoint
-      saveToSession('rl_amHost', false)       // ← efface toute ancienne valeur dans sessionStorage
       setLoading(false)
     })
 
@@ -91,7 +89,7 @@ export function useGame() {
       setVotesCount(0)
       setIsImpostor(false)
       saveToSession('rl_results', null)
-      saveToSession('rl_isImpostor', false)  // ← efface l'ancien rôle
+      saveToSession('rl_isImpostor', false)
       navigate(`/room/${room.id}`)
     })
 
@@ -123,13 +121,13 @@ export function useGame() {
     socket.emit('room:join', { roomId, playerName })
   }, [])
 
-  const startGame  = useCallback((roomId) => { socket.emit('game:start', { roomId }) }, [])
-  const endGame    = useCallback((roomId) => { socket.emit('game:end', { roomId }) }, [])
-  const castVote   = useCallback((roomId, targetId) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
+  const startGame      = useCallback((roomId) => { socket.emit('game:start', { roomId }) }, [])
+  const endGame        = useCallback((roomId) => { socket.emit('game:end', { roomId }) }, [])
+  const castVote       = useCallback((roomId, targetId) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
   const requestScores  = useCallback((roomId) => { socket.emit('scores:request', { roomId }) }, [])
   const startNextRound = useCallback((roomId, hostName) => {
-  socket.emit('round:next', { roomId, hostName })
-}, [])
+    socket.emit('round:next', { roomId, hostName })
+  }, [])
 
   return {
     room, myName, isImpostor, amHost, error, votesCount, results, scores, loading,
