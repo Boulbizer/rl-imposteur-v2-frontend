@@ -1,0 +1,237 @@
+/* index.css — Système de design RL Imposteur 2.0 */
+/* Thème : Cyberpunk sombre, ambiance Among Us × Rocket League */
+
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap');
+
+/* ─── VARIABLES ─────────────────────────────────────── */
+:root {
+  --bg:          #07071a;
+  --bg-card:     #0e0e2a;
+  --bg-elevated: #141435;
+
+  --purple:      #7c3aed;
+  --purple-glow: #7c3aedaa;
+  --cyan:        #06b6d4;
+  --cyan-glow:   #06b6d466;
+  --red:         #ef4444;
+  --red-glow:    #ef444466;
+  --green:       #10b981;
+  --amber:       #f59e0b;
+
+  --text:        #e2e8f0;
+  --text-muted:  #64748b;
+  --text-dim:    #334155;
+
+  --border:      #1e1e4a;
+  --border-glow: #7c3aed33;
+
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body:    'Exo 2', sans-serif;
+
+  --radius:    10px;
+  --radius-lg: 16px;
+}
+
+/* ─── RESET & BASE ──────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fond animé — grille cyberpunk subtile */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Lueur centrale violette */
+body::after {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse, var(--purple-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root { position: relative; z-index: 1; }
+
+/* ─── TYPOGRAPHIE ────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ─── COMPOSANTS RÉUTILISABLES ──────────────────────── */
+
+/* Carte de base */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+}
+
+/* Carte avec bordure lumineuse */
+.card-glow {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 0 40px var(--purple-glow), inset 0 0 40px #7c3aed08;
+}
+
+/* Bouton principal */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--purple);
+  color: #fff;
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+.btn-primary:hover:not(:disabled) {
+  background: #8b5cf6;
+  box-shadow: 0 0 32px var(--purple-glow);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 0 20px var(--red-glow);
+}
+.btn-danger:hover:not(:disabled) {
+  background: #f87171;
+  box-shadow: 0 0 32px var(--red-glow);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--purple);
+  color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-full { width: 100%; }
+
+/* Input */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px var(--purple-glow);
+}
+.input::placeholder { color: var(--text-dim); }
+
+/* Badge de rôle */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge-impostor { background: var(--red-glow); color: var(--red); border: 1px solid var(--red); }
+.badge-crew     { background: var(--cyan-glow); color: var(--cyan); border: 1px solid var(--cyan); }
+.badge-host     { background: var(--purple-glow); color: #a78bfa; border: 1px solid var(--purple); }
+
+/* Animation d'apparition */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease forwards; }
+
+/* Pulse néon */
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 20px var(--purple-glow); }
+  50%       { box-shadow: 0 0 40px var(--purple-glow), 0 0 80px var(--purple-glow); }
+}
+.neon-pulse { animation: neonPulse 2s ease-in-out infinite; }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Page container */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+/* Message d'erreur */
+.error-msg {
+  padding: 0.75rem 1rem;
+  background: #ef444415;
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  color: var(--red);
+  font-size: 0.9rem;
+}
