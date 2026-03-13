@@ -12,7 +12,7 @@ const MEDALS = ['🥇', '🥈', '🥉']
 
 export default function Scores() {
   const { roomId } = useParams()
-  const { scores, room, myName, requestScores, startNextRound } = useGame()
+  const { scores, room, myName, amHost, requestScores, startNextRound } = useGame()
 
   // Charge les scores au montage
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function Scores() {
   }, [roomId, requestScores])
 
   if (!room) return null
-  const isHost = room.hostId === socket.id || room.hostName === myName
+  const isHost = amHost
   const maxScore = scores.length > 0 ? scores[0].total : 1
 
   return (
