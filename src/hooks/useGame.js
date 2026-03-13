@@ -71,6 +71,7 @@ export function useGame() {
     socket.on('vote:registered', ({ votesCount }) => { setVotesCount(votesCount) })
 
     socket.on('reveal:result', ({ results }) => {
+      saveToSession('rl_results', results)
       setResults(results)
       const currentRoom = loadFromSession('rl_room', null)
       if (currentRoom) navigate(`/room/${currentRoom.id}/reveal`)
