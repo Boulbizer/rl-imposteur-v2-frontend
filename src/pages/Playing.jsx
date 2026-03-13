@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom'
 export default function Playing() {
   const { roomId } = useParams()
   const { room, isImpostor, socketId, endGame } = useGame()
+  const actualIsImpostor = sessionStorage.getItem('rl_isImpostor') === 'true'
 
   if (!room) return null
 
@@ -52,8 +53,8 @@ export default function Playing() {
             animationDelay: '0.1s',
             width: '100%',
             textAlign: 'center',
-            borderColor: isImpostor ? 'var(--red)' : 'var(--cyan)',
-            boxShadow: isImpostor
+            borderColor: actualIsImpostor ? 'var(--red)' : 'var(--cyan)',
+            boxShadow: actualIsImpostor
               ? '0 0 40px var(--red-glow), inset 0 0 40px #ef444408'
               : '0 0 40px var(--cyan-glow), inset 0 0 40px #06b6d408',
           }}
@@ -63,7 +64,7 @@ export default function Playing() {
           </div>
 
           <div style={{ fontSize: '4rem', marginBottom: '0.75rem' }}>
-            {isImpostor ? '🎭' : '🚗'}
+            {actualIsImpostor ? '🎭' : '🚗'}
           </div>
 
           <div style={{
@@ -71,10 +72,10 @@ export default function Playing() {
             fontSize: '2.5rem',
             fontWeight: 700,
             letterSpacing: '0.05em',
-            color: isImpostor ? 'var(--red)' : 'var(--cyan)',
+            color: actualIsImpostor ? 'var(--red)' : 'var(--cyan)',
             marginBottom: '0.5rem',
           }}>
-            {isImpostor ? 'IMPOSTEUR' : 'ÉQUIPIER'}
+            {actualIsImpostor ? 'IMPOSTEUR' : 'ÉQUIPIER'}
           </div>
 
           <div style={{
@@ -84,7 +85,7 @@ export default function Playing() {
             margin: '0 auto',
             lineHeight: 1.7,
           }}>
-            {isImpostor
+            {actualIsImpostor
               ? 'Fais perdre ton équipe sans te faire repérer. Sois subtil — tes coéquipiers te surveillent.'
               : 'Joue normalement et observe. Quelqu\'un dans cette salle cherche à vous faire perdre.'}
           </div>
@@ -128,7 +129,7 @@ export default function Playing() {
           color: 'var(--text-muted)',
           textAlign: 'center',
         }}>
-          {isImpostor
+          {actualIsImpostor
             ? '🎯 Objectif : faire perdre ton équipe sans éveiller les soupçons'
             : '🔍 Objectif : repérer l\'imposteur pendant la partie'}
         </div>
