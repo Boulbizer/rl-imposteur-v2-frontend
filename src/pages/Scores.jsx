@@ -65,8 +65,8 @@ export default function Scores() {
             {[1, 0, 2].map(rankIndex => {
               const player = scores[rankIndex]
               if (!player) return <div key={rankIndex} style={{ width: 110 }} />
-              const heights = [100, 130, 80]
-              const colors = ['var(--amber)', 'var(--cyan)', '#cd7f32']
+              const heights = [130, 100, 80]
+              const colors = ['var(--cyan)', 'var(--amber)', '#cd7f32']
               return (
                 <div key={rankIndex} style={{
                   display: 'flex',
