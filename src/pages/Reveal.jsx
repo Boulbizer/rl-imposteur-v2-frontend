@@ -2,11 +2,12 @@
 // Révélation animée de l'imposteur avec résultats du vote
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 
 export default function Reveal() {
   const { roomId } = useParams()
+  const navigate = useNavigate()
   const { results, room, socketId, requestScores } = useGame()
 
   // Animation en 3 phases : suspense → révélation → points
@@ -269,13 +270,13 @@ export default function Reveal() {
 
             {/* Bouton scores (tout le monde) */}
             <div className="fade-up" style={{ width: '100%', animationDelay: '0.2s' }}>
-              <a
-                href={`/room/${roomId}/scores`}
+              <button
                 className="btn btn-primary btn-full"
-                style={{ textDecoration: 'none', fontSize: '1rem' }}
+                onClick={() => navigate(`/room/${roomId}/scores`)}
+                style={{ fontSize: '1rem' }}
               >
                 📊 Voir le classement général
-              </a>
+              </button>
             </div>
           </>
         )}
