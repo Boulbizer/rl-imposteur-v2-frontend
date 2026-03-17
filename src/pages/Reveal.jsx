@@ -9,7 +9,7 @@ import { useGame } from '../hooks/useGame'
 export default function Reveal() {
   const { roomId } = useParams()
   const navigate = useNavigate()
-  const { results, room, socketId, requestScores } = useGame()
+  const { results, room, socketId, amHost, requestScores, startNextRound } = useGame()
 
   const [phase, setPhase] = useState('suspense') // 'suspense' | 'reveal' | 'points'
 
@@ -280,13 +280,35 @@ export default function Reveal() {
                 </div>
               </div>
 
-              {/* Bouton scores */}
-              <button
-                className="btn btn-primary btn-lg btn-full fade-in"
-                onClick={() => navigate(`/room/${roomId}/scores`)}
-              >
-                📊 Voir le classement general
-              </button>
+              {/* Actions : manche suivante (hôte) + classement (optionnel) */}
+              {amHost ? (
+                <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <button
+                    className="btn btn-primary btn-lg btn-full neon-pulse"
+                    onClick={() => startNextRound(roomId)}
+                  >
+                    🔄 Lancer la manche {room?.round ? room.round + 1 : 'suivante'}
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-full"
+                    onClick={() => navigate(`/room/${roomId}/scores`)}
+                  >
+                    📊 Voir le classement general
+                  </button>
+                </div>
+              ) : (
+                <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div className="waiting-banner">
+                    En attente que <strong style={{ color: 'var(--text)' }}>{room?.hostName}</strong> lance la manche suivante...
+                  </div>
+                  <button
+                    className="btn btn-ghost btn-full"
+                    onClick={() => navigate(`/room/${roomId}/scores`)}
+                  >
+                    📊 Voir le classement general
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

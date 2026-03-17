@@ -1,6 +1,7 @@
 // hooks/useGame.js
 // Ce hook centralise TOUTE la logique Socket.io
 // L'état est persisté dans sessionStorage pour survivre aux navigations
+// Reconnexion automatique avec room:rejoin
 
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -30,7 +31,6 @@ export function useGame() {
   const [loading, setLoading]       = useState(false)
 
   // amHost est calculé dynamiquement depuis room.hostName
-  // C'est la seule source de vérité fiable : pas de sessionStorage, pas de socket.id
   const amHost = !!(room && myName && room.hostName === myName)
 
   useEffect(() => { saveToSession('rl_room', room) }, [room])
@@ -40,6 +40,20 @@ export function useGame() {
 
   useEffect(() => {
     if (!socket.connected) socket.connect()
+
+    // ─── RECONNEXION AUTOMATIQUE ─────────────────────────────────
+    // Quand le socket se reconnecte, on tente un rejoin automatique
+    const handleReconnect = () => {
+      const savedRoom = loadFromSession('rl_room', null)
+      const savedName = loadFromSession('rl_myName', '')
+      if (savedRoom && savedName) {
+        socket.emit('room:rejoin', { roomId: savedRoom.id, playerName: savedName })
+        console.log(`🔄 Tentative de reconnexion à la salle ${savedRoom.id}`)
+      }
+    }
+    socket.on('connect', handleReconnect)
+
+    // ─── ÉVÉNEMENTS SALLE ────────────────────────────────────────
 
     socket.on('room:created', ({ room }) => {
       setRoom(room)
@@ -52,12 +66,23 @@ export function useGame() {
       setLoading(false)
     })
 
+    socket.on('room:rejoined', ({ room, isImpostor }) => {
+      setRoom(room)
+      if (isImpostor !== undefined) {
+        setIsImpostor(isImpostor)
+        saveToSession('rl_isImpostor', isImpostor)
+      }
+      console.log(`✅ Reconnecté à la salle ${room.id}`)
+    })
+
     socket.on('room:updated', ({ room }) => { setRoom(room) })
 
     socket.on('room:error', ({ message }) => {
       setError(message)
       setLoading(false)
     })
+
+    // ─── ÉVÉNEMENTS JEU ──────────────────────────────────────────
 
     socket.on('game:started', ({ room, isImpostor }) => {
       setRoom(room)
@@ -81,8 +106,6 @@ export function useGame() {
       if (currentRoom) navigate(`/room/${currentRoom.id}/reveal`)
     })
 
-    // MODIFIÉ : scores:data reçoit maintenant aussi { room } depuis le serveur
-    // → on met à jour la room pour que amHost soit recalculé correctement
     socket.on('scores:data', ({ scores, room }) => {
       setScores(scores)
       if (room) {
@@ -102,8 +125,10 @@ export function useGame() {
     })
 
     return () => {
+      socket.off('connect', handleReconnect)
       socket.off('room:created')
       socket.off('room:joined')
+      socket.off('room:rejoined')
       socket.off('room:updated')
       socket.off('room:error')
       socket.off('game:started')
@@ -133,8 +158,9 @@ export function useGame() {
   const endGame        = useCallback((roomId) => { socket.emit('game:end', { roomId }) }, [])
   const castVote       = useCallback((roomId, targetId) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
   const requestScores  = useCallback((roomId) => { socket.emit('scores:request', { roomId }) }, [])
-  const startNextRound = useCallback((roomId, hostName) => {
-    socket.emit('round:next', { roomId, hostName })
+  // Sécurisé : plus de hostName envoyé, le backend vérifie uniquement socket.id
+  const startNextRound = useCallback((roomId) => {
+    socket.emit('round:next', { roomId })
   }, [])
 
   return {

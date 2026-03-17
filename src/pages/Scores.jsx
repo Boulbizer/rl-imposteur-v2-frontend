@@ -209,7 +209,7 @@ export default function Scores() {
           {isHost ? (
             <button
               className="btn btn-primary btn-lg btn-full neon-pulse"
-              onClick={() => startNextRound(roomId, myName)}
+              onClick={() => startNextRound(roomId)}
             >
               🔄 Lancer la manche {room.round + 1}
             </button>
