@@ -46,13 +46,13 @@ export default function Lobby() {
       <div className="page-split">
         <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
           <div className="illustration-container">
-            <GamepadPattern color="#000" opacity={0.06} />
+            <GamepadPattern color="#000" opacity={0.12} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: 'var(--text-dark)' }}>
               Tu es invite !
             </h1>
-            <p style={{ fontSize: '1rem', color: 'rgba(0,0,0,0.6)', marginTop: '1rem' }}>
+            <p style={{ fontSize: '1rem', color: 'rgba(0,0,0,0.75)', marginTop: '1rem' }}>
               Salle <strong>{roomId}</strong>
             </p>
           </div>
@@ -102,7 +102,7 @@ export default function Lobby() {
       <div className="page-split">
         <div className="panel-left" style={{ background: 'var(--blue)' }}>
           <div className="illustration-container">
-            <GamepadPattern color="#000" opacity={0.06} />
+            <GamepadPattern color="#000" opacity={0.12} />
           </div>
         </div>
         <div className="panel-right" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -125,14 +125,14 @@ export default function Lobby() {
       {/* Panneau gauche — Info salle sur bleu */}
       <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
         <div className="illustration-container">
-          <GamepadPattern color="#000" opacity={0.06} />
+          <GamepadPattern color="#000" opacity={0.12} />
         </div>
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div>
             <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', color: 'var(--text-dark)', marginBottom: '0.5rem' }}>
               RL Imposteur
             </h1>
-            <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.6)' }}>
+            <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.75)' }}>
               Salle d'attente · Manche {room.round}
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function Lobby() {
               <span style={{
                 flex: 1,
                 fontSize: '0.85rem',
-                color: 'rgba(0,0,0,0.7)',
+                color: 'rgba(0,0,0,0.8)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -173,7 +173,7 @@ export default function Lobby() {
           {/* Regles condensees */}
           <div>
             <div className="section-label-dark">Regles</div>
-            <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.6)', lineHeight: 1.7, marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.75)', lineHeight: 1.7, marginTop: '0.25rem' }}>
               Un imposteur secret est designe. Jouez votre partie RL. L'imposteur sabote discretement. A la fin, votez. Bon vote +2 pts, imposteur non decouvert +3 pts.
             </p>
           </div>

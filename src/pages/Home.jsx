@@ -21,7 +21,7 @@ export default function Home() {
       {/* Panneau gauche — Bleu avec illustration */}
       <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
         <div className="illustration-container">
-          <MaskPattern color="#000" opacity={0.06} />
+          <MaskPattern color="#000" opacity={0.12} />
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <h1 style={{
@@ -34,7 +34,7 @@ export default function Home() {
           </h1>
           <p style={{
             fontSize: '1.1rem',
-            color: 'rgba(0,0,0,0.6)',
+            color: 'rgba(0,0,0,0.75)',
             maxWidth: 400,
             lineHeight: 1.6,
           }}>
@@ -73,7 +73,7 @@ export default function Home() {
 
             {error && <div className="error-msg">{error}</div>}
 
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', lineHeight: 1.6 }}>
+            <p style={{ color: 'var(--text-gray)', fontSize: '0.9rem', lineHeight: 1.6 }}>
               Tu as un lien d'invitation ? Clique dessus directement — il t'amenera dans la salle.
             </p>
           </form>

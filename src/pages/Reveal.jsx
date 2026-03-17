@@ -95,7 +95,7 @@ export default function Reveal() {
       {/* Panneau gauche — Résultat sur couleur */}
       <div className="panel-left fade-up" style={{ background: panelColor }}>
         <div className="illustration-container">
-          <ShieldReveal color="#000" opacity={0.06} found={impostorFound} />
+          <ShieldReveal color="#000" opacity={0.12} found={impostorFound} />
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div className="section-label-dark">
@@ -110,7 +110,7 @@ export default function Reveal() {
           </h1>
 
           {!impostorFound && accusedName && accusedName !== impostorName && (
-            <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.6)', marginTop: '1rem' }}>
+            <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.75)', marginTop: '1rem' }}>
               Vous avez vote contre {accusedName} — qui etait innocent.
             </p>
           )}
@@ -122,7 +122,7 @@ export default function Reveal() {
               <div style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--text-dark)', lineHeight: 1 }}>
                 +{myPoints}
               </div>
-              <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.6)', marginTop: '0.5rem' }}>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.75)', marginTop: '0.5rem' }}>
                 {isImpostor
                   ? myPoints > 0 ? 'Non decouvert — belle performance !' : 'Decouvert cette fois...'
                   : myPoints > 0 ? 'Bonne intuition !' : "Tu n'as pas vise le bon joueur"}

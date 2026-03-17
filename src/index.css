@@ -18,13 +18,13 @@
 
   --text-dark:  #000000;
   --text-light: #ffffff;
-  --text-gray:  #888888;
-  --text-dim:   #555555;
+  --text-gray:  #b0b0b0;
+  --text-dim:   #808080;
 
-  --line:       #333333;
+  --line:       #3a3a3a;
   --line-light: #cccccc;
-  --surface:    #111111;
-  --surface-2:  #1a1a1a;
+  --surface:    #161616;
+  --surface-2:  #222222;
 
   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
@@ -97,17 +97,17 @@ h1, h2, h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-top: 1px solid var(--line);
-  min-height: 60px;
+  min-height: 80px;
 }
 
 .action-bar-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 3rem;
+  padding: 1.25rem 3rem;
   font-family: var(--font);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.15rem;
   cursor: pointer;
   border: none;
   transition: background 0.2s ease;
@@ -122,10 +122,10 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 3rem;
+  padding: 1.25rem 3rem;
   font-family: var(--font);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-gray);
 }
 
@@ -134,11 +134,11 @@ h1, h2, h3 {
 }
 
 .action-bar-item.primary {
-  background: var(--bg);
+  background: var(--blue);
   color: var(--text-light);
 }
 .action-bar-item.primary:hover {
-  background: var(--surface);
+  background: var(--blue-dark);
 }
 
 .action-bar-item.secondary {
@@ -158,7 +158,7 @@ h1, h2, h3 {
 /* Arrow icon for action bar */
 .arrow-down-right::after {
   content: '↘';
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   margin-left: 1rem;
 }
 
@@ -198,12 +198,12 @@ h1, h2, h3 {
   border-color: var(--text-light);
 }
 .input::placeholder {
-  color: var(--text-dim);
+  color: var(--text-gray);
 }
 
 /* ─── SECTION LABEL ──────────────────────────────── */
 .section-label {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-gray);
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -212,8 +212,8 @@ h1, h2, h3 {
 }
 
 .section-label-dark {
-  font-size: 0.75rem;
-  color: rgba(0,0,0,0.5);
+  font-size: 0.8rem;
+  color: rgba(0,0,0,0.65);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 700;
@@ -276,7 +276,7 @@ h1, h2, h3 {
 /* ─── PROGRESS BAR ───────────────────────────────── */
 .progress-bar {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(255,255,255,0.15);
   border-radius: 2px;
   overflow: hidden;
@@ -291,7 +291,7 @@ h1, h2, h3 {
 /* On colored backgrounds */
 .progress-bar-dark {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(0,0,0,0.15);
   border-radius: 2px;
   overflow: hidden;
@@ -309,11 +309,11 @@ h1, h2, h3 {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.85rem 2rem;
-  border: 1px solid var(--line);
+  padding: 1.1rem 2.5rem;
+  border: 2px solid var(--line);
   border-radius: 0;
   font-family: var(--font);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
