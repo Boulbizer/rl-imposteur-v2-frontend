@@ -1,53 +1,10 @@
 // pages/Lobby.jsx
-// Salle d'attente : liste des joueurs, lien d'invitation, bouton "Lancer" (hôte)
-// Layout 16:9 : joueurs + invite à gauche, règles + illustration à droite
+// Salle d'attente — Layout split : info salle sur bleu, joueurs sur noir
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
-import { LobbyIllustration } from '../components/Illustrations'
-
-function PlayerCard({ player, isHost, isMe }) {
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      padding: '0.85rem 1.1rem',
-      background: isMe ? '#7c3aed12' : 'var(--bg-elevated)',
-      border: `1px solid ${isMe ? 'var(--purple)' : 'var(--border)'}`,
-      borderRadius: 'var(--radius)',
-      transition: 'all 0.3s ease',
-    }}>
-      <div style={{
-        width: 40, height: 40,
-        borderRadius: '50%',
-        background: isMe ? 'var(--purple)' : 'var(--bg-card)',
-        border: `2px solid ${isMe ? 'var(--purple)' : 'var(--border)'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'var(--font-display)',
-        fontWeight: 700,
-        fontSize: '1.1rem',
-        color: isMe ? '#fff' : 'var(--text-muted)',
-        flexShrink: 0,
-      }}>
-        {player.name[0].toUpperCase()}
-      </div>
-
-      <span style={{
-        fontFamily: 'var(--font-display)',
-        fontWeight: 600,
-        fontSize: '1.05rem',
-        flex: 1,
-      }}>
-        {player.name}
-        {isMe && <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.82rem', marginLeft: '0.5rem' }}>(toi)</span>}
-      </span>
-
-      {isHost && <span className="badge badge-host">Hote</span>}
-    </div>
-  )
-}
+import { GamepadPattern } from '../components/Illustrations'
 
 export default function Lobby() {
   const { roomId } = useParams()
@@ -86,20 +43,31 @@ export default function Lobby() {
   // Formulaire de join pour visiteurs via lien
   if (!hasJoined && !myName) {
     return (
-      <div className="page">
-        <div className="layout-center fade-up">
-          <div className="card-glow" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🚀</div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--cyan)' }}>Tu es invite !</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
-              Salle <code style={{ color: 'var(--purple)', fontFamily: 'monospace' }}>{roomId}</code>
+      <div className="page-split">
+        <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
+          <div className="illustration-container">
+            <GamepadPattern color="#000" opacity={0.06} />
+          </div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: 'var(--text-dark)' }}>
+              Tu es invite !
+            </h1>
+            <p style={{ fontSize: '1rem', color: 'rgba(0,0,0,0.6)', marginTop: '1rem' }}>
+              Salle <strong>{roomId}</strong>
             </p>
+          </div>
+        </div>
 
-            <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ textAlign: 'left' }}>
-                <label className="section-label">Ton pseudo</label>
+        <div className="panel-right fade-up" style={{ animationDelay: '0.1s' }}>
+          <div style={{ maxWidth: 400 }}>
+            <div className="section-label">Rejoindre la salle</div>
+            <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-gray)', marginBottom: '0.5rem', fontWeight: 500 }}>
+                  Ton pseudo
+                </label>
                 <input
-                  className="input input-lg"
+                  className="input"
                   type="text"
                   placeholder="Ex : SupraNova_RL"
                   value={nameInput}
@@ -108,14 +76,22 @@ export default function Lobby() {
                   autoFocus
                 />
               </div>
-
               {error && <div className="error-msg">{error}</div>}
-
-              <button className="btn btn-primary btn-lg btn-full" type="submit" disabled={!nameInput.trim() || joining}>
-                {joining ? <span className="spinner" /> : 'Rejoindre la salle'}
-              </button>
             </form>
           </div>
+        </div>
+
+        <div className="action-bar">
+          <div className="action-bar-label">
+            <span>Salle {roomId}</span>
+          </div>
+          <button
+            className="action-bar-item primary arrow-down-right"
+            onClick={handleJoin}
+            disabled={!nameInput.trim() || joining}
+          >
+            {joining ? <span className="spinner" /> : 'Rejoindre la salle'}
+          </button>
         </div>
       </div>
     )
@@ -123,131 +99,151 @@ export default function Lobby() {
 
   if (!room) {
     return (
-      <div className="page">
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <div className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
-          <p style={{ color: 'var(--text-muted)' }}>Connexion a la salle...</p>
+      <div className="page-split">
+        <div className="panel-left" style={{ background: 'var(--blue)' }}>
+          <div className="illustration-container">
+            <GamepadPattern color="#000" opacity={0.06} />
+          </div>
+        </div>
+        <div className="panel-right" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="spinner" style={{ margin: '0 auto 1rem', width: 32, height: 32 }} />
+            <p style={{ color: 'var(--text-gray)' }}>Connexion a la salle...</p>
+          </div>
+        </div>
+        <div className="action-bar">
+          <div className="action-bar-label"><span>Chargement...</span></div>
+          <div className="action-bar-label"><span></span></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="page">
-      <div className="layout-split" style={{ alignItems: 'start' }}>
+    <div className="page-split">
 
-        {/* Colonne gauche — Header + Joueurs + Invite */}
-        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div>
-              <h1 style={{ fontSize: '2rem', color: 'var(--text)' }}>
-                <span style={{ color: 'var(--cyan)' }}>RL</span> Imposteur
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                Salle d'attente · Manche {room.round}
-              </p>
-            </div>
-            <div className="badge badge-amber">
-              {room.players.length}/10 joueurs
-            </div>
+      {/* Panneau gauche — Info salle sur bleu */}
+      <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
+        <div className="illustration-container">
+          <GamepadPattern color="#000" opacity={0.06} />
+        </div>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div>
+            <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', color: 'var(--text-dark)', marginBottom: '0.5rem' }}>
+              RL Imposteur
+            </h1>
+            <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.6)' }}>
+              Salle d'attente · Manche {room.round}
+            </p>
           </div>
 
           {/* Lien d'invitation */}
-          <div className="card" style={{ padding: '1rem 1.25rem' }}>
-            <div className="section-label">🔗 Lien d'invitation</div>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <code style={{
+          <div>
+            <div className="section-label-dark">Lien d'invitation</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+              <span style={{
                 flex: 1,
-                fontSize: '0.8rem',
-                color: 'var(--cyan)',
+                fontSize: '0.85rem',
+                color: 'rgba(0,0,0,0.7)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: 500,
               }}>
                 {inviteUrl}
-              </code>
+              </span>
               <button
-                className="btn btn-ghost"
                 onClick={handleCopyLink}
-                style={{ padding: '0.45rem 1rem', fontSize: '0.82rem', flexShrink: 0 }}
+                style={{
+                  background: 'rgba(0,0,0,0.1)',
+                  border: 'none',
+                  padding: '0.4rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  color: 'var(--text-dark)',
+                  fontFamily: 'var(--font)',
+                }}
               >
-                {copied ? '✓ Copie !' : 'Copier'}
+                {copied ? 'Copie !' : 'Copier'}
               </button>
             </div>
           </div>
 
-          {/* Liste des joueurs */}
+          {/* Regles condensees */}
           <div>
-            <div className="section-label">Joueurs connectes</div>
-            <div className="player-grid">
-              {room.players.map(player => (
-                <PlayerCard
-                  key={player.id}
-                  player={player}
-                  isHost={player.id === room.hostId}
-                  isMe={player.id === socketId}
-                />
-              ))}
-            </div>
-            {room.players.length < 2 && (
-              <div className="waiting-banner" style={{ marginTop: '0.75rem' }}>
-                En attente de joueurs...
-              </div>
-            )}
+            <div className="section-label-dark">Regles</div>
+            <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.6)', lineHeight: 1.7, marginTop: '0.25rem' }}>
+              Un imposteur secret est designe. Jouez votre partie RL. L'imposteur sabote discretement. A la fin, votez. Bon vote +2 pts, imposteur non decouvert +3 pts.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Colonne droite — Illustration + Règles + Bouton */}
-        <div className="fade-up" style={{ animationDelay: '0.1s', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Panneau droit — Liste joueurs sur noir */}
+      <div className="panel-right fade-up" style={{ animationDelay: '0.1s', justifyContent: 'flex-start', paddingTop: '3rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <div className="section-label" style={{ marginBottom: 0 }}>Joueurs connectes</div>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-gray)', fontWeight: 600 }}>
+            {room.players.length}/10
+          </span>
+        </div>
 
-          {/* Illustration */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <LobbyIllustration size={260} playerCount={room.players.length} className="float" />
-          </div>
-
-          {/* Règles du jeu */}
-          <div className="card" style={{ borderColor: 'var(--border-glow)' }}>
-            <div className="section-label" style={{ color: 'var(--purple)' }}>Regles du jeu</div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              {[
-                { icon: '🎭', text: "Un imposteur secret est designe au lancement" },
-                { icon: '🚗', text: "Jouez votre partie Rocket League normalement" },
-                { icon: '🕵️', text: "L'imposteur doit faire perdre son equipe discretement" },
-                { icon: '🗳️', text: "A la fin : tout le monde vote pour designer l'imposteur" },
-                { icon: '🏆', text: "Bons votants +2 pts · Imposteur non decouvert +3 pts" },
-              ].map(({ icon, text }) => (
-                <li key={text} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-muted)', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{icon}</span>
-                  <span>{text}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Bouton lancer */}
-          {isHost ? (
-            <div>
-              {error && <div className="error-msg" style={{ marginBottom: '0.75rem' }}>{error}</div>}
-              <button
-                className={`btn btn-primary btn-lg btn-full ${room.players.length >= 2 ? 'neon-pulse' : ''}`}
-                onClick={() => startGame(room.id)}
-                disabled={room.players.length < 2}
+        <div>
+          {room.players.map(player => {
+            const isMe = player.id === socketId
+            const isPlayerHost = player.id === room.hostId
+            const isDisconnected = player.disconnected
+            return (
+              <div
+                key={player.id}
+                className="list-row"
+                style={isDisconnected ? { opacity: 0.4 } : {}}
               >
-                {room.players.length < 2
-                  ? "En attente d'un autre joueur..."
-                  : `Lancer la partie (${room.players.length} joueurs)`}
-              </button>
-            </div>
-          ) : (
-            <div className="waiting-banner">
-              En attente que <strong style={{ color: 'var(--text)' }}>{room.hostName}</strong> lance la partie...
+                <div className="row-left">
+                  <span style={{ fontWeight: isMe ? 800 : 600 }}>
+                    {player.name}
+                    {isMe && <span style={{ color: 'var(--text-dim)', fontWeight: 400, fontSize: '0.85rem', marginLeft: '0.5rem' }}>(toi)</span>}
+                    {isDisconnected && <span style={{ color: 'var(--text-dim)', fontWeight: 400, fontSize: '0.85rem', marginLeft: '0.5rem' }}>deconnecte</span>}
+                  </span>
+                </div>
+                <div className="row-right">
+                  {isPlayerHost && <span className="badge" style={{ color: 'var(--blue)' }}>Hote</span>}
+                </div>
+              </div>
+            )
+          })}
+
+          {room.players.length < 2 && (
+            <div className="waiting-banner" style={{ marginTop: '0.5rem' }}>
+              En attente de joueurs...
             </div>
           )}
         </div>
-
       </div>
+
+      {/* Footer action bar */}
+      <div className="action-bar">
+        <div className="action-bar-label">
+          <span>Salle d'attente · {room.players.length} joueur{room.players.length > 1 ? 's' : ''}</span>
+        </div>
+        {isHost ? (
+          <button
+            className="action-bar-item primary arrow-down-right"
+            onClick={() => startGame(room.id)}
+            disabled={room.players.length < 2}
+          >
+            {room.players.length < 2
+              ? "En attente d'un autre joueur..."
+              : `Lancer la partie (${room.players.length} joueurs)`}
+          </button>
+        ) : (
+          <div className="action-bar-label" style={{ justifyContent: 'flex-end' }}>
+            <span>En attente que {room.hostName} lance la partie...</span>
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }
