@@ -217,69 +217,87 @@ export default function Reveal() {
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {players
-              .slice()
-              .sort((a, b) => (pointsAwarded[b.id] || 0) - (pointsAwarded[a.id] || 0))
-              .map((player, i) => {
-                const pts = pointsAwarded[player.id] || 0
-                const isMe = player.id === socketId
-                const isActualImpostor = player.id === results.impostorId
-                const votedFor = results.votes?.[player.id]
-                const votedForName = players.find(p => p.id === votedFor)?.name
-                const votedCorrectly = votedFor === results.impostorId
+            {(() => {
+              // Build cumulative score lookup by player name
+              const cumulLookup = {}
+              if (results.cumulativeScores) {
+                for (const s of results.cumulativeScores) {
+                  cumulLookup[s.name] = s.total
+                }
+              }
 
-                return (
-                  <div key={player.id} className="score-row" style={{
-                    background: isMe ? 'rgba(139, 92, 246, 0.07)' : undefined,
-                    border: isMe ? '1px solid rgba(139, 92, 246, 0.15)' : '1px solid transparent',
-                  }}>
-                    <span className="score-rank" style={{
-                      color: i < 3 ? 'var(--green)' : 'var(--text-tertiary)',
-                      fontWeight: 700,
+              // Build vote lookup: voterId -> target player name
+              const voteLookup = {}
+              if (results.votes) {
+                for (const [voterId, targetId] of Object.entries(results.votes)) {
+                  const target = players.find(p => p.id === targetId)
+                  if (target) voteLookup[voterId] = { name: target.name, correct: targetId === results.impostorId }
+                }
+              }
+
+              return players
+                .slice()
+                .sort((a, b) => (cumulLookup[b.name] || 0) - (cumulLookup[a.name] || 0))
+                .map((player, i) => {
+                  const pts = pointsAwarded[player.id] || 0
+                  const cumul = cumulLookup[player.name]
+                  const isMe = player.id === socketId
+                  const isActualImpostor = player.id === results.impostorId
+                  const vote = voteLookup[player.id]
+
+                  return (
+                    <div key={player.id} className="score-row" style={{
+                      background: isMe ? 'rgba(139, 92, 246, 0.07)' : undefined,
+                      border: isMe ? '1px solid rgba(139, 92, 246, 0.15)' : '1px solid transparent',
                     }}>
-                      {i + 1}
-                    </span>
-
-                    <Avatar name={player.name} size="sm" />
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span className="score-player">
-                        {player.name}
+                      <span className="score-rank" style={{
+                        color: i < 3 ? 'var(--green)' : 'var(--text-tertiary)',
+                        fontWeight: 700,
+                      }}>
+                        {i + 1}
                       </span>
-                      {isActualImpostor && (
-                        <span className="badge badge-impostor" style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
-                          🎭 Imposteur
-                        </span>
-                      )}
-                      {!isActualImpostor && votedForName && (
-                        <span className={`badge ${votedCorrectly ? 'badge-found' : 'badge-impostor'}`} style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
-                          {votedCorrectly ? '✓' : '✗'} A voté {votedForName}
-                        </span>
-                      )}
-                    </div>
 
-                    <span style={{
-                      fontFamily: 'var(--font-display)',
-                      fontWeight: 700,
-                      fontSize: '1.05rem',
-                      color: 'var(--text-primary)',
-                      minWidth: 40,
-                      textAlign: 'right',
-                    }}>
-                      {player.totalScore ?? '—'}
-                    </span>
-                    <span style={{
-                      fontFamily: 'var(--font-display)',
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      color: pts > 0 ? 'var(--green)' : 'var(--text-tertiary)',
-                      minWidth: 35,
-                    }}>
-                      +{pts}
-                    </span>
-                  </div>
-                )
-              })}
+                      <Avatar name={player.name} size="sm" />
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span className="score-player">
+                          {player.name}
+                        </span>
+                        {isActualImpostor && (
+                          <span className="badge badge-impostor" style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                            🎭 Imposteur
+                          </span>
+                        )}
+                        {!isActualImpostor && vote && (
+                          <span className={`badge ${vote.correct ? 'badge-found' : 'badge-impostor'}`} style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                            {vote.correct ? '✓' : '✗'} A voté {vote.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <span style={{
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 700,
+                        fontSize: '1.05rem',
+                        color: 'var(--text-primary)',
+                        minWidth: 40,
+                        textAlign: 'right',
+                      }}>
+                        {cumul != null ? cumul : 0}
+                      </span>
+                      <span style={{
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        color: pts > 0 ? 'var(--green)' : 'var(--text-tertiary)',
+                        minWidth: 35,
+                      }}>
+                        +{pts}
+                      </span>
+                    </div>
+                  )
+                })
+            })()}
           </div>
         </div>
       )}
