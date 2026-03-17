@@ -1,12 +1,12 @@
 // pages/Scores.jsx
-// Scores cumulés — Layout split : trophée sur bleu, leaderboard sur noir
+// Cyberpunk style + split fullscreen layout
 
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
-import { TrophySilhouette } from '../components/Illustrations'
+import { TrophyIllustration } from '../components/Illustrations'
 
-const MEDALS = ['I', 'II', 'III']
+const MEDALS = ['🥇', '🥈', '🥉']
 
 export default function Scores() {
   const { roomId } = useParams()
@@ -23,140 +23,181 @@ export default function Scores() {
   return (
     <div className="page-split">
 
-      {/* Panneau gauche — Bleu avec trophée */}
-      <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
-        <div className="illustration-container">
-          <TrophySilhouette color="#000" opacity={0.12} />
-        </div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="section-label-dark">Classement general</div>
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
-            color: 'var(--text-dark)',
-            marginBottom: '0.5rem',
+      {/* Panneau gauche — Trophée + Podium */}
+      <div className="panel-left fade-up" style={{
+        background: 'linear-gradient(135deg, #07071a 0%, #131335 50%, #0d0d28 100%)',
+        alignItems: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="status-pill" style={{
+            background: '#7c3aed15',
+            border: '1px solid var(--purple)',
+            color: '#a78bfa',
+            marginBottom: '1rem',
           }}>
-            Scores cumules
-          </h1>
-          <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.75)' }}>
-            Apres {room.round} manche{room.round > 1 ? 's' : ''}
-          </p>
-
-          {/* Podium visuel (top 3) */}
-          {scores.length >= 1 && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-end',
-              gap: '0.5rem',
-              marginTop: '3rem',
-              maxWidth: 320,
-            }}>
-              {[1, 0, 2].map(rankIndex => {
-                const player = scores[rankIndex]
-                if (!player) return <div key={rankIndex} style={{ flex: 1 }} />
-                const heights = [160, 120, 90]
-                return (
-                  <div key={rankIndex} style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                  }}>
-                    <span style={{
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      color: 'var(--text-dark)',
-                      textAlign: 'center',
-                      maxWidth: '100%',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {player.name}
-                    </span>
-                    <span style={{
-                      fontSize: '1.3rem',
-                      fontWeight: 900,
-                      color: 'var(--text-dark)',
-                    }}>
-                      {player.total}
-                    </span>
-                    <div style={{
-                      width: '100%',
-                      height: heights[rankIndex],
-                      background: 'rgba(0,0,0,0.12)',
-                      borderRadius: '4px 4px 0 0',
-                    }} />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Systeme de points */}
-          <div style={{ marginTop: '2rem', fontSize: '0.85rem', color: 'rgba(0,0,0,0.7)' }}>
-            Bon vote +2 pts · Imposteur non decouvert +3 pts
+            🏆 Classement general
           </div>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.5rem)' }}>Scores cumules</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.3rem' }}>
+            Manche {room.round} terminee
+          </p>
         </div>
+
+        <div className="float">
+          <TrophyIllustration size={260} />
+        </div>
+
+        {/* Podium visuel (top 3) */}
+        {scores.length >= 1 && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            gap: '0.75rem',
+            width: '100%',
+            maxWidth: 400,
+          }}>
+            {[1, 0, 2].map(rankIndex => {
+              const player = scores[rankIndex]
+              if (!player) return <div key={rankIndex} style={{ width: 110 }} />
+              const heights = [140, 105, 80]
+              const colors = ['var(--cyan)', 'var(--amber)', '#cd7f32']
+              return (
+                <div key={rankIndex} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  flex: 1,
+                }}>
+                  <div style={{ fontSize: '1.8rem' }}>{MEDALS[rankIndex]}</div>
+                  <div style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: 'var(--text)',
+                    textAlign: 'center',
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {player.name}
+                  </div>
+                  <div style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 700,
+                    fontSize: '1.3rem',
+                    color: colors[rankIndex],
+                  }}>
+                    {player.total}
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    height: heights[rankIndex],
+                    background: `${colors[rankIndex]}18`,
+                    border: `1px solid ${colors[rankIndex]}55`,
+                    borderRadius: '10px 10px 0 0',
+                    boxShadow: `0 0 25px ${colors[rankIndex]}22`,
+                  }} />
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Panneau droit — Leaderboard sur noir */}
+      {/* Panneau droit — Leaderboard */}
       <div className="panel-right fade-up" style={{ animationDelay: '0.1s', justifyContent: 'flex-start', paddingTop: '3rem' }}>
-        <div className="section-label">Classement complet</div>
 
-        {scores.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-            <div className="spinner" style={{ margin: '0 auto 1rem' }} />
-            <p style={{ color: 'var(--text-gray)' }}>Chargement des scores...</p>
-          </div>
-        ) : (
-          <div>
-            {scores.map((player, i) => {
-              const pct = maxScore > 0 ? (player.total / maxScore) * 100 : 0
-              const isMe = player.name === myName
-              return (
-                <div key={player.name} className="list-row">
-                  <div className="row-left" style={{ gap: '1rem' }}>
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <div className="section-label">Classement complet</div>
+
+          {scores.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-dim)', fontSize: '0.95rem' }}>
+              <span className="spinner" style={{ margin: '0 auto 0.75rem', display: 'block' }} />
+              Chargement des scores...
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {scores.map((player, i) => {
+                const pct = maxScore > 0 ? (player.total / maxScore) * 100 : 0
+                const isMe = player.name === myName
+                return (
+                  <div key={player.name} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.7rem 0.85rem',
+                    background: isMe ? '#7c3aed12' : 'transparent',
+                    borderRadius: 'var(--radius)',
+                    border: isMe ? '1px solid #7c3aed44' : '1px solid transparent',
+                  }}>
                     <span style={{
-                      width: 30,
-                      fontSize: i < 3 ? '0.95rem' : '0.85rem',
+                      width: 30, textAlign: 'center',
+                      fontSize: i < 3 ? '1.2rem' : '0.9rem',
                       color: 'var(--text-dim)',
+                      fontFamily: 'var(--font-display)',
                       fontWeight: 700,
                       flexShrink: 0,
                     }}>
                       {i < 3 ? MEDALS[i] : `${i + 1}.`}
                     </span>
+
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontWeight: isMe ? 800 : 600,
-                        color: isMe ? 'var(--blue)' : 'var(--text-light)',
-                        marginBottom: '0.35rem',
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        color: isMe ? '#a78bfa' : 'var(--text)',
+                        marginBottom: '0.3rem',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}>
                         {player.name}{isMe ? ' (toi)' : ''}
                       </div>
-                      <div className="progress-bar">
-                        <div className="progress-bar-fill" style={{
+                      <div style={{ background: 'var(--bg-elevated)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%',
                           width: `${pct}%`,
-                          background: i === 0 ? 'var(--blue)' : 'var(--text-dim)',
+                          background: i === 0 ? 'var(--cyan)' : 'var(--purple)',
+                          borderRadius: 999,
+                          transition: 'width 1s ease',
                         }} />
                       </div>
                     </div>
+
+                    <span style={{
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 700,
+                      fontSize: '1.25rem',
+                      color: i === 0 ? 'var(--cyan)' : isMe ? '#a78bfa' : 'var(--text)',
+                      flexShrink: 0,
+                      minWidth: 45,
+                      textAlign: 'right',
+                    }}>
+                      {player.total}
+                    </span>
                   </div>
-                  <div className="row-right" style={{
-                    fontWeight: 900,
-                    fontSize: '1.2rem',
-                    color: i === 0 ? 'var(--blue)' : isMe ? 'var(--blue)' : 'var(--text-light)',
-                  }}>
-                    {player.total}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="card-glass" style={{
+          padding: '1rem 1.25rem',
+          fontSize: '0.9rem',
+          color: 'var(--text-dim)',
+          display: 'flex',
+          gap: '2rem',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+        }}>
+          <span>🎯 Bon vote → <strong style={{ color: 'var(--text-muted)' }}>+2 pts</strong></span>
+          <span>😈 Non decouvert → <strong style={{ color: 'var(--text-muted)' }}>+3 pts</strong></span>
+        </div>
       </div>
 
       {/* Footer action bar */}
@@ -166,14 +207,14 @@ export default function Scores() {
         </div>
         {isHost ? (
           <button
-            className="action-bar-item primary arrow-down-right"
+            className="action-bar-item primary arrow-right neon-pulse"
             onClick={() => startNextRound(roomId)}
           >
-            Lancer la manche {room.round + 1}
+            🔄 Manche {room.round + 1}
           </button>
         ) : (
           <div className="action-bar-label" style={{ justifyContent: 'flex-end' }}>
-            <span>En attente que {room.hostName} lance la manche suivante...</span>
+            En attente que <strong style={{ color: 'var(--text)' }}>{room.hostName}</strong> lance la manche suivante...
           </div>
         )}
       </div>

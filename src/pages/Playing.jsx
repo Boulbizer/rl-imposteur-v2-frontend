@@ -1,10 +1,10 @@
 // pages/Playing.jsx
-// Partie en cours — Layout split : role sur panneau coloré, infos sur noir
+// Cyberpunk style + split fullscreen layout
 
 import { useGame } from '../hooks/useGame'
 import socket from '../lib/socket'
 import { useParams } from 'react-router-dom'
-import { MaskPattern, CarSilhouette } from '../components/Illustrations'
+import { RoleDecoration } from '../components/Illustrations'
 
 export default function Playing() {
   const { roomId } = useParams()
@@ -14,108 +14,151 @@ export default function Playing() {
   if (!room) return null
 
   const isHost = room.hostId === socket.id
-  const panelColor = actualIsImpostor ? 'var(--coral)' : 'var(--teal)'
+  const roleColor = actualIsImpostor ? 'var(--red)' : 'var(--cyan)'
+  const roleGlow = actualIsImpostor ? 'var(--red-glow)' : 'var(--cyan-glow)'
 
   return (
     <div className="page-split">
 
-      {/* Panneau gauche — Couleur du rôle */}
-      <div className="panel-left fade-up" style={{ background: panelColor, justifyContent: 'center', alignItems: 'flex-start' }}>
-        <div className="illustration-container">
-          {actualIsImpostor
-            ? <MaskPattern color="#000" opacity={0.12} />
-            : <CarSilhouette color="#000" opacity={0.12} />
-          }
+      {/* Panneau gauche — Rôle secret + Illustration */}
+      <div className="fade-up" style={{
+        padding: '3rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1.5rem',
+        background: 'linear-gradient(135deg, #07071a 0%, #131335 50%, #0d0d28 100%)',
+      }}>
+        {/* Status pill */}
+        <div className="status-pill" style={{
+          background: '#06b6d415',
+          border: '1px solid var(--cyan)',
+          color: 'var(--cyan)',
+        }}>
+          ● Partie en cours — Manche {room.round}
         </div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="section-label-dark">Ton role secret</div>
-          <h1 style={{
-            fontSize: 'clamp(3rem, 6vw, 6rem)',
-            color: 'var(--text-dark)',
-            marginTop: '0.5rem',
+
+        {/* Illustration du rôle */}
+        <div className="float">
+          <RoleDecoration isImpostor={actualIsImpostor} size={280} />
+        </div>
+
+        {/* Carte de rôle */}
+        <div
+          className="card-glow"
+          style={{
+            width: '100%',
+            maxWidth: 440,
+            textAlign: 'center',
+            borderColor: roleColor,
+            boxShadow: `0 0 40px ${roleGlow}, inset 0 0 40px ${actualIsImpostor ? '#ef444408' : '#06b6d408'}`,
+          }}
+        >
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            Ton role secret
+          </div>
+          <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>
+            {actualIsImpostor ? '🎭' : '🚗'}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2rem, 4vw, 3rem)',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+            color: roleColor,
+            marginBottom: '0.75rem',
           }}>
-            {actualIsImpostor ? 'Imposteur' : 'Equipier'}
-          </h1>
-          <p style={{
-            fontSize: '1.05rem',
-            color: 'rgba(0,0,0,0.75)',
-            maxWidth: 380,
-            lineHeight: 1.6,
-            marginTop: '1.5rem',
-          }}>
+            {actualIsImpostor ? 'IMPOSTEUR' : 'EQUIPIER'}
+          </div>
+          <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>
             {actualIsImpostor
               ? 'Fais perdre ton equipe sans te faire reperer. Sois subtil.'
               : "Joue normalement et observe. Quelqu'un cherche a vous faire perdre."}
-          </p>
+          </div>
         </div>
       </div>
 
-      {/* Panneau droit — Infos partie sur noir */}
+      {/* Panneau droit — Joueurs + Conseils */}
       <div className="panel-right fade-up" style={{ animationDelay: '0.1s', justifyContent: 'flex-start', paddingTop: '3rem' }}>
+
         {/* Objectif */}
-        <div>
-          <div className="section-label">Objectif</div>
-          <p style={{ fontSize: '1.05rem', color: 'var(--text-light)', fontWeight: 600, lineHeight: 1.5 }}>
+        <div className="card-glass" style={{ textAlign: 'center', padding: '1.25rem', borderColor: roleColor }}>
+          <div style={{ fontSize: '1.1rem', color: roleColor, fontFamily: 'var(--font-display)', fontWeight: 700 }}>
             {actualIsImpostor
-              ? 'Faire perdre ton equipe sans eveiller les soupcons'
-              : "Reperer l'imposteur pendant la partie"}
-          </p>
+              ? '🎯 Objectif : faire perdre ton equipe sans eveiller les soupcons'
+              : "🔍 Objectif : reperer l'imposteur pendant la partie"}
+          </div>
         </div>
 
-        {/* Joueurs */}
-        <div style={{ marginTop: '1rem' }}>
+        {/* Liste des joueurs */}
+        <div className="card" style={{ padding: '1.25rem' }}>
           <div className="section-label">Joueurs dans la partie ({room.players.length})</div>
-          {room.players.map(player => {
-            const isMe = player.id === socketId
-            return (
-              <div key={player.id} className="list-row">
-                <div className="row-left">
-                  <span style={{ fontWeight: isMe ? 800 : 600 }}>
-                    {player.name}
-                    {player.id === room.hostId && <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>hote</span>}
-                    {isMe && <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>(toi)</span>}
-                  </span>
-                </div>
-              </div>
-            )
-          })}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {room.players.map(player => (
+              <span
+                key={player.id}
+                style={{
+                  padding: '0.4rem 0.9rem',
+                  background: player.id === socketId ? '#7c3aed18' : 'var(--bg-elevated)',
+                  border: `1px solid ${player.id === socketId ? 'var(--purple)' : 'var(--border)'}`,
+                  borderRadius: 999,
+                  fontSize: '0.9rem',
+                  color: player.id === socketId ? '#a78bfa' : 'var(--text-muted)',
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                }}
+              >
+                {player.name}{player.id === room.hostId ? ' 👑' : ''}
+                {player.id === socketId ? ' (toi)' : ''}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Conseils */}
-        <div style={{ marginTop: '1rem' }}>
-          <div className="section-label">Conseils</div>
-          {(actualIsImpostor ? [
-            "Fais des erreurs subtiles, pas des trahisons evidentes",
-            "Accuse quelqu'un d'autre pour detourner l'attention",
-            "Joue normalement au debut pour gagner la confiance",
-          ] : [
-            "Observe les rotations et positionnements suspects",
-            "Note les erreurs qui semblent intentionnelles",
-            "Discutez entre vous pendant la partie",
-          ]).map((tip, i) => (
-            <div key={i} className="list-row" style={{ fontSize: '0.95rem', color: 'var(--text-gray)', borderColor: 'var(--surface-2)' }}>
-              <span>{tip}</span>
-            </div>
-          ))}
+        {/* Tips */}
+        <div className="card-glass" style={{ padding: '1.25rem' }}>
+          <div className="section-label">💡 Conseils</div>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {(actualIsImpostor ? [
+              "Fais des erreurs subtiles, pas des trahisons evidentes",
+              "Accuse quelqu'un d'autre pour detourner l'attention",
+              "Joue normalement au debut pour gagner la confiance",
+            ] : [
+              "Observe les rotations et positionnements suspects",
+              "Note les erreurs qui semblent intentionnelles",
+              "Discutez entre vous pendant la partie",
+            ]).map((tip, i) => (
+              <li key={i} style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', gap: '0.5rem' }}>
+                <span style={{ color: roleColor, flexShrink: 0 }}>›</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
         </div>
+
+        {!isHost && (
+          <div className="waiting-banner">
+            <strong style={{ color: 'var(--text-muted)' }}>{room.hostName}</strong> declenchera le vote a la fin de la partie.
+          </div>
+        )}
       </div>
 
       {/* Footer action bar */}
       <div className="action-bar">
         <div className="action-bar-label">
-          <span>Partie en cours · Manche {room.round}</span>
+          <span>● Partie en cours · Manche {room.round}</span>
         </div>
         {isHost ? (
           <button
-            className="action-bar-item primary arrow-down-right"
-            style={{ color: 'var(--coral)' }}
+            className="action-bar-item danger arrow-right"
             onClick={() => endGame(roomId)}
           >
-            La partie est terminee — Passer au vote
+            🏁 Passer au vote
           </button>
         ) : (
           <div className="action-bar-label" style={{ justifyContent: 'flex-end' }}>
-            <span>{room.hostName} declenchera le vote a la fin de la partie</span>
+            <span>{room.hostName} declenchera le vote</span>
           </div>
         )}
       </div>
