@@ -1,11 +1,10 @@
 // pages/Vote.jsx
-// Phase de vote : chaque joueur clique sur l'imposteur présumé
-// Layout 16:9 : grille de vote à gauche, progression + illustration à droite
+// Phase de vote — Layout split : urne/progression sur coral, choix sur noir
 
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
-import { SpyIllustration } from '../components/Illustrations'
+import { BallotBox } from '../components/Illustrations'
 
 export default function Vote() {
   const { roomId } = useParams()
@@ -16,6 +15,7 @@ export default function Vote() {
   if (!room) return null
 
   const totalPlayers = room.players.length
+  const pct = totalPlayers > 0 ? (votesCount / totalPlayers) * 100 : 0
 
   function handleVote() {
     if (!selected || hasVoted) return
@@ -24,151 +24,114 @@ export default function Vote() {
   }
 
   return (
-    <div className="page">
-      <div className="layout-split">
+    <div className="page-split">
 
-        {/* Colonne gauche — Grille de vote ou confirmation */}
-        <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-          {/* Header */}
-          <div>
-            <div className="status-pill" style={{
-              background: '#f59e0b15',
-              border: '1px solid var(--amber)',
-              color: 'var(--amber)',
-              marginBottom: '1rem',
-            }}>
-              🗳️ Phase de vote
-            </div>
-            <h1 style={{ fontSize: '2.2rem' }}>Qui est l'imposteur ?</h1>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.3rem', fontSize: '0.95rem' }}>
-              Designez le joueur que vous suspectez
-            </p>
-          </div>
-
-          {!hasVoted ? (
-            <div>
-              <div className="section-label">Selectionne un joueur</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                {room.players
-                  .filter(p => p.id !== socketId)
-                  .map(player => (
-                    <button
-                      key={player.id}
-                      onClick={() => setSelected(player.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        padding: '1rem 1.25rem',
-                        background: selected === player.id ? '#ef444415' : 'var(--bg-elevated)',
-                        border: `2px solid ${selected === player.id ? 'var(--red)' : 'var(--border)'}`,
-                        borderRadius: 'var(--radius)',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        width: '100%',
-                        textAlign: 'left',
-                        color: 'var(--text)',
-                        boxShadow: selected === player.id ? '0 0 20px var(--red-glow)' : 'none',
-                      }}
-                    >
-                      <div style={{
-                        width: 44, height: 44, borderRadius: '50%',
-                        background: selected === player.id ? 'var(--red)' : 'var(--bg-card)',
-                        border: `2px solid ${selected === player.id ? 'var(--red)' : 'var(--border)'}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.2rem',
-                        color: selected === player.id ? '#fff' : 'var(--text-muted)',
-                        transition: 'all 0.2s ease',
-                        flexShrink: 0,
-                      }}>
-                        {player.name[0].toUpperCase()}
-                      </div>
-                      <span style={{
-                        fontFamily: 'var(--font-display)',
-                        fontWeight: 600,
-                        fontSize: '1.1rem',
-                        flex: 1,
-                      }}>
-                        {player.name}
-                        {player.id === room.hostId && <span style={{ color: 'var(--text-dim)', fontWeight: 400, fontSize: '0.8rem', marginLeft: '0.4rem' }}>(hote)</span>}
-                      </span>
-                      {selected === player.id && (
-                        <span style={{ color: 'var(--red)', fontSize: '1.3rem' }}>🎯</span>
-                      )}
-                    </button>
-                  ))}
-              </div>
-
-              <button
-                className="btn btn-danger btn-lg btn-full"
-                style={{ marginTop: '1.25rem' }}
-                onClick={handleVote}
-                disabled={!selected}
-              >
-                {selected
-                  ? `Voter contre ${room.players.find(p => p.id === selected)?.name}`
-                  : 'Selectionne un joueur'}
-              </button>
-            </div>
-          ) : (
-            <div className="card-glow" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-              <p style={{ color: 'var(--green)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.4rem', marginBottom: '0.5rem' }}>
-                Vote enregistre !
-              </p>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                Tu as vote contre <strong style={{ color: 'var(--text)' }}>{room.players.find(p => p.id === selected)?.name}</strong>
-              </p>
-              <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', marginTop: '1rem' }}>
-                En attente des autres joueurs...
-              </p>
-            </div>
-          )}
+      {/* Panneau gauche — Coral avec progression */}
+      <div className="panel-left fade-up" style={{ background: 'var(--coral)' }}>
+        <div className="illustration-container">
+          <BallotBox color="#000" opacity={0.06} />
         </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div className="section-label-dark">Phase de vote</div>
+          <h1 style={{
+            fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
+            color: 'var(--text-dark)',
+            marginBottom: '2rem',
+          }}>
+            Qui est l'imposteur ?
+          </h1>
 
-        {/* Colonne droite — Progression + Illustration */}
-        <div className="fade-up" style={{ animationDelay: '0.1s', display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
-
-          {/* Illustration */}
-          <div className="float">
-            <SpyIllustration size={280} />
-          </div>
-
-          {/* Barre de progression */}
-          <div className="card" style={{ width: '100%', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Votes recus</span>
-              <span style={{ color: 'var(--amber)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.1rem' }}>
+          {/* Compteur de votes */}
+          <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.6)', fontWeight: 600 }}>Votes recus</span>
+              <span style={{ fontSize: '1.5rem', color: 'var(--text-dark)', fontWeight: 900 }}>
                 {votesCount} / {totalPlayers}
               </span>
             </div>
-            <div style={{ background: 'var(--bg-elevated)', borderRadius: 999, height: 8, overflow: 'hidden' }}>
-              <div style={{
-                height: '100%',
-                background: 'var(--amber)',
-                borderRadius: 999,
-                width: `${totalPlayers > 0 ? (votesCount / totalPlayers) * 100 : 0}%`,
-                transition: 'width 0.4s ease',
-                boxShadow: '0 0 12px var(--amber)',
-              }} />
+            <div className="progress-bar-dark">
+              <div className="progress-bar-dark-fill" style={{ width: `${pct}%` }} />
             </div>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '0.75rem', textAlign: 'center' }}>
-              Les resultats seront reveles quand tout le monde aura vote
+          </div>
+
+          <p style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.5)', marginTop: '1.5rem' }}>
+            Les resultats seront reveles quand tout le monde aura vote
+          </p>
+        </div>
+      </div>
+
+      {/* Panneau droit — Liste de vote sur noir */}
+      <div className="panel-right fade-up" style={{ animationDelay: '0.1s', justifyContent: 'flex-start', paddingTop: '3rem' }}>
+
+        {!hasVoted ? (
+          <div>
+            <div className="section-label">Designe le joueur que tu suspectes</div>
+
+            {room.players
+              .filter(p => p.id !== socketId)
+              .map(player => {
+                const isSelected = selected === player.id
+                return (
+                  <div
+                    key={player.id}
+                    className={`list-row list-row-interactive ${isSelected ? 'list-row-selected' : ''}`}
+                    onClick={() => setSelected(player.id)}
+                    style={isSelected ? { borderColor: 'var(--coral)' } : {}}
+                  >
+                    <div className="row-left">
+                      <span style={{ fontWeight: 600 }}>
+                        {player.name}
+                        {player.id === room.hostId && <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>hote</span>}
+                      </span>
+                    </div>
+                    <div className="row-right">
+                      {isSelected
+                        ? <span style={{ color: 'var(--coral)', fontSize: '1.2rem', fontWeight: 900 }}>●</span>
+                        : <span style={{ fontSize: '1.2rem' }}>→</span>
+                      }
+                    </div>
+                  </div>
+                )
+              })}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h2 style={{ fontSize: '2rem', color: 'var(--text-light)' }}>
+              Vote enregistre
+            </h2>
+            <p style={{ color: 'var(--text-gray)', fontSize: '1rem' }}>
+              Tu as vote contre <strong style={{ color: 'var(--text-light)' }}>{room.players.find(p => p.id === selected)?.name}</strong>
+            </p>
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>
+              En attente des autres joueurs...
             </p>
           </div>
-
-          {/* Rappel */}
-          <div className="card-glass" style={{ width: '100%', padding: '1.25rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              <strong style={{ color: 'var(--amber)' }}>+2 pts</strong> si tu votes correctement
-              <br />
-              <strong style={{ color: 'var(--red)' }}>+3 pts</strong> pour l'imposteur s'il n'est pas decouvert
-            </div>
-          </div>
-        </div>
-
+        )}
       </div>
+
+      {/* Footer action bar */}
+      <div className="action-bar">
+        <div className="action-bar-label">
+          <span>+2 pts bon vote · +3 pts imposteur non decouvert</span>
+        </div>
+        {!hasVoted ? (
+          <button
+            className="action-bar-item primary arrow-down-right"
+            style={{ color: selected ? 'var(--coral)' : 'var(--text-light)' }}
+            onClick={handleVote}
+            disabled={!selected}
+          >
+            {selected
+              ? `Voter contre ${room.players.find(p => p.id === selected)?.name}`
+              : 'Selectionne un joueur'}
+          </button>
+        ) : (
+          <div className="action-bar-label" style={{ justifyContent: 'flex-end' }}>
+            <span>{votesCount} / {totalPlayers} votes</span>
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }
