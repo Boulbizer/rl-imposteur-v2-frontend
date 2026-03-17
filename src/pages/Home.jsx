@@ -1,14 +1,24 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 
 export default function Home() {
   const { createRoom, loading, error } = useGame()
+  const navigate = useNavigate()
   const [name, setName] = useState('')
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const [roomCode, setRoomCode] = useState('')
 
   function handleCreate(e) {
     e.preventDefault()
     if (!name.trim()) return
     createRoom(name.trim())
+  }
+
+  function handleJoin(e) {
+    e.preventDefault()
+    if (!roomCode.trim()) return
+    navigate(`/room/${roomCode.trim()}`)
   }
 
   return (
@@ -28,7 +38,7 @@ export default function Home() {
           width: 88,
           height: 88,
           borderRadius: 'var(--radius-lg)',
-          background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-violet), #ec4899)',
+          background: 'linear-gradient(135deg, var(--blue), var(--violet), #ec4899)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -45,7 +55,7 @@ export default function Home() {
           fontSize: 'clamp(2.8rem, 5vw, 4rem)',
           fontWeight: 800,
           lineHeight: 1.1,
-          background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-violet), #ec4899)',
+          background: 'linear-gradient(135deg, var(--blue), var(--violet), #ec4899)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           marginBottom: '1rem',
@@ -59,11 +69,33 @@ export default function Home() {
           fontSize: '1.1rem',
           lineHeight: 1.7,
           maxWidth: 480,
-          margin: '0 auto 2rem',
+          margin: '0 auto',
         }}>
-          Jouez a Rocket League. L'un d'entre vous est un imposteur.
+          Jouez à Rocket League. L'un d'entre vous est un imposteur.
           Trouvez-le avant qu'il ne soit trop tard.
         </p>
+      </div>
+
+      {/* Name input card + buttons below */}
+      <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="glass-strong" style={{
+          padding: '2rem',
+          borderRadius: 'var(--radius-lg)',
+        }}>
+          <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <label className="section-label">Ton pseudo</label>
+            <input
+              className="input"
+              type="text"
+              placeholder="Ex : SonicBoom_77"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              maxLength={20}
+              autoFocus
+            />
+            {error && <div className="error-msg">{error}</div>}
+          </form>
+        </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
           <button
@@ -71,40 +103,15 @@ export default function Home() {
             onClick={handleCreate}
             disabled={!name.trim() || loading}
           >
-            {loading ? 'Creation...' : 'Creer une partie'}
+            {loading ? 'Création...' : 'Créer une partie'}
           </button>
           <button
             className="btn btn-glass"
-            onClick={() => {
-              const code = prompt('Code de la salle :')
-              if (code) window.location.href = `/room/${code.trim()}`
-            }}
+            onClick={() => setShowJoinModal(true)}
           >
             Rejoindre
           </button>
         </div>
-      </div>
-
-      {/* Name input card */}
-      <div className="glass-strong" style={{
-        padding: '2rem',
-        width: '100%',
-        maxWidth: 440,
-        borderRadius: 'var(--radius-lg)',
-      }}>
-        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <label className="section-label">Ton pseudo</label>
-          <input
-            className="input"
-            type="text"
-            placeholder="Ex : SonicBoom_77"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            maxLength={20}
-            autoFocus
-          />
-          {error && <div className="error-msg">{error}</div>}
-        </form>
       </div>
 
       {/* Feature cards */}
@@ -118,18 +125,18 @@ export default function Home() {
         {[
           {
             icon: '🎭',
-            title: 'Role secret',
-            desc: 'Un imposteur est designe au hasard parmi les joueurs a chaque manche.',
+            title: 'Rôle secret',
+            desc: 'Un imposteur est désigné au hasard parmi les joueurs à chaque manche.',
           },
           {
             icon: '⚽',
             title: 'Rocket League',
-            desc: "Jouez votre match normalement. L'imposteur doit saboter discretement.",
+            desc: "Jouez votre match normalement. L'imposteur doit saboter discrètement.",
           },
           {
             icon: '🗳️',
             title: 'Phase de vote',
-            desc: 'A la fin du match, tout le monde vote pour demasquer le traitre.',
+            desc: 'À la fin du match, tout le monde vote pour démasquer le traître.',
           },
         ].map(({ icon, title, desc }) => (
           <div key={title} className="feature-card glass" style={{
@@ -158,6 +165,70 @@ export default function Home() {
           </div>
         ))}
       </div>
+
+      {/* Join Room Modal */}
+      {showJoinModal && (
+        <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
+          <div
+            className="glass-strong modal-content fade-up"
+            onClick={e => e.stopPropagation()}
+            style={{
+              padding: '2.5rem',
+              borderRadius: 'var(--radius-lg)',
+              width: '100%',
+              maxWidth: 420,
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔗</div>
+            <h2 style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 700,
+              fontSize: '1.4rem',
+              color: 'var(--text-primary)',
+              marginBottom: '0.5rem',
+            }}>
+              Rejoindre une salle
+            </h2>
+            <p style={{
+              color: 'var(--text-secondary)',
+              fontSize: '0.9rem',
+              marginBottom: '1.5rem',
+            }}>
+              Entre le code de la salle pour rejoindre tes amis.
+            </p>
+            <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <input
+                className="input"
+                type="text"
+                placeholder="Code de la salle"
+                value={roomCode}
+                onChange={e => setRoomCode(e.target.value)}
+                autoFocus
+                style={{ textAlign: 'center', fontSize: '1.1rem', letterSpacing: '0.1em' }}
+              />
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-glass"
+                  onClick={() => setShowJoinModal(false)}
+                  style={{ flex: 1 }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!roomCode.trim()}
+                  style={{ flex: 1 }}
+                >
+                  Rejoindre
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

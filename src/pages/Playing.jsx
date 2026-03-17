@@ -63,7 +63,7 @@ export default function Playing() {
             color: actualIsImpostor ? 'var(--impostor-red)' : 'var(--safe-blue)',
             marginBottom: '0.5rem',
           }}>
-            {actualIsImpostor ? "Tu es l'Imposteur" : 'Tu es Equipier'}
+            {actualIsImpostor ? "Tu es l'Imposteur" : 'Tu es Équipier'}
           </h1>
 
           <p style={{
@@ -74,8 +74,8 @@ export default function Playing() {
             margin: '0 auto 1.25rem',
           }}>
             {actualIsImpostor
-              ? "Fais perdre ton equipe sans te faire reperer. Sois subtil et discret."
-              : "Joue normalement et observe. Quelqu'un cherche a vous faire perdre."}
+              ? "Fais perdre ton équipe sans te faire repérer. Sois subtil et discret."
+              : "Joue normalement et observe. Quelqu'un cherche à vous faire perdre."}
           </p>
 
           {!roleAcknowledged && (
@@ -181,7 +181,7 @@ export default function Playing() {
                 }}>
                   {player.name}
                   {isPlayerHost && (
-                    <span style={{ marginLeft: '0.4rem' }} title="Hote">👑</span>
+                    <span style={{ marginLeft: '0.4rem' }} title="Hôte">👑</span>
                   )}
                   {isSelf && (
                     <span style={{
@@ -226,7 +226,7 @@ export default function Playing() {
             fontSize: '0.9rem',
             margin: 0,
           }}>
-            Quand la manche est terminee, lance le vote.
+            Quand la manche est terminée, lance le vote.
           </p>
           <button
             className="btn btn-danger"
