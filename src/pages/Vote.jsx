@@ -29,7 +29,7 @@ export default function Vote() {
       {/* Panneau gauche — Coral avec progression */}
       <div className="panel-left fade-up" style={{ background: 'var(--coral)' }}>
         <div className="illustration-container">
-          <BallotBox color="#000" opacity={0.06} />
+          <BallotBox color="#000" opacity={0.12} />
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div className="section-label-dark">Phase de vote</div>
@@ -44,7 +44,7 @@ export default function Vote() {
           {/* Compteur de votes */}
           <div style={{ marginTop: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.6)', fontWeight: 600 }}>Votes recus</span>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.75)', fontWeight: 600 }}>Votes recus</span>
               <span style={{ fontSize: '1.5rem', color: 'var(--text-dark)', fontWeight: 900 }}>
                 {votesCount} / {totalPlayers}
               </span>
@@ -54,7 +54,7 @@ export default function Vote() {
             </div>
           </div>
 
-          <p style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.5)', marginTop: '1.5rem' }}>
+          <p style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.7)', marginTop: '1.5rem' }}>
             Les resultats seront reveles quand tout le monde aura vote
           </p>
         </div>

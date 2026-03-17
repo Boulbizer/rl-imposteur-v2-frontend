@@ -26,7 +26,7 @@ export default function Scores() {
       {/* Panneau gauche — Bleu avec trophée */}
       <div className="panel-left fade-up" style={{ background: 'var(--blue)' }}>
         <div className="illustration-container">
-          <TrophySilhouette color="#000" opacity={0.06} />
+          <TrophySilhouette color="#000" opacity={0.12} />
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div className="section-label-dark">Classement general</div>
@@ -37,7 +37,7 @@ export default function Scores() {
           }}>
             Scores cumules
           </h1>
-          <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.6)' }}>
+          <p style={{ fontSize: '0.95rem', color: 'rgba(0,0,0,0.75)' }}>
             Apres {room.round} manche{room.round > 1 ? 's' : ''}
           </p>
 
@@ -94,7 +94,7 @@ export default function Scores() {
           )}
 
           {/* Systeme de points */}
-          <div style={{ marginTop: '2rem', fontSize: '0.85rem', color: 'rgba(0,0,0,0.5)' }}>
+          <div style={{ marginTop: '2rem', fontSize: '0.85rem', color: 'rgba(0,0,0,0.7)' }}>
             Bon vote +2 pts · Imposteur non decouvert +3 pts
           </div>
         </div>

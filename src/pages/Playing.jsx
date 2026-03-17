@@ -23,8 +23,8 @@ export default function Playing() {
       <div className="panel-left fade-up" style={{ background: panelColor, justifyContent: 'center', alignItems: 'flex-start' }}>
         <div className="illustration-container">
           {actualIsImpostor
-            ? <MaskPattern color="#000" opacity={0.06} />
-            : <CarSilhouette color="#000" opacity={0.06} />
+            ? <MaskPattern color="#000" opacity={0.12} />
+            : <CarSilhouette color="#000" opacity={0.12} />
           }
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -38,7 +38,7 @@ export default function Playing() {
           </h1>
           <p style={{
             fontSize: '1.05rem',
-            color: 'rgba(0,0,0,0.6)',
+            color: 'rgba(0,0,0,0.75)',
             maxWidth: 380,
             lineHeight: 1.6,
             marginTop: '1.5rem',
