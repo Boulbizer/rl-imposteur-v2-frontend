@@ -1,10 +1,10 @@
 // pages/Vote.jsx
-// Cyberpunk style + split fullscreen layout
+// Glassmorphism light UI — centered column layout
 
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
-import { SpyIllustration } from '../components/Illustrations'
+import Avatar from '../components/Avatar'
 
 export default function Vote() {
   const { roomId } = useParams()
@@ -15,6 +15,8 @@ export default function Vote() {
   if (!room) return null
 
   const totalPlayers = room.players.length
+  const otherPlayers = room.players.filter(p => p.id !== socketId)
+  const progressPct = totalPlayers > 0 ? (votesCount / totalPlayers) * 100 : 0
 
   function handleVote() {
     if (!selected || hasVoted) return
@@ -23,156 +25,219 @@ export default function Vote() {
   }
 
   return (
-    <div className="page-split">
+    <div className="container fade-up" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '1.5rem',
+      padding: '2rem 1rem',
+      minHeight: '100vh',
+    }}>
 
-      {/* Panneau gauche — Grille de vote ou confirmation */}
-      <div className="panel-left fade-up" style={{ background: 'linear-gradient(135deg, #07071a 0%, #131335 50%, #0d0d28 100%)', justifyContent: 'flex-start', paddingTop: '3rem' }}>
+      {/* 1. Vote header */}
+      <div style={{ textAlign: 'center', marginBottom: '0.25rem' }}>
+        <div style={{ fontSize: 48, lineHeight: 1, marginBottom: '0.5rem' }}>🕵️</div>
+        <h1 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          marginBottom: '0.35rem',
+        }}>
+          Qui est l'imposteur ?
+        </h1>
+        <p style={{
+          color: 'var(--text-secondary)',
+          fontSize: '0.95rem',
+        }}>
+          Designez le joueur que vous suspectez
+        </p>
+      </div>
 
-        <div>
-          <div className="status-pill" style={{
-            background: '#f59e0b15',
-            border: '1px solid var(--amber)',
-            color: 'var(--amber)',
-            marginBottom: '1rem',
+      {/* 2. Progress indicator */}
+      <div
+        className="glass"
+        style={{
+          width: '100%',
+          maxWidth: 600,
+          padding: '1.25rem 1.5rem',
+          borderRadius: 'var(--radius-md)',
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0.6rem',
+        }}>
+          <span style={{
+            fontSize: '0.9rem',
+            color: 'var(--text-secondary)',
           }}>
-            🗳️ Phase de vote
-          </div>
-          <h1 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.5rem)' }}>Qui est l'imposteur ?</h1>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.3rem', fontSize: '0.95rem' }}>
-            Designez le joueur que vous suspectez
-          </p>
+            Votes recus
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            fontSize: '1.05rem',
+            color: 'var(--accent-orange)',
+          }}>
+            {votesCount} / {totalPlayers}
+          </span>
         </div>
 
-        {!hasVoted ? (
-          <div>
-            <div className="section-label">Selectionne un joueur</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              {room.players
-                .filter(p => p.id !== socketId)
-                .map(player => (
-                  <button
-                    key={player.id}
-                    onClick={() => setSelected(player.id)}
-                    style={{
+        <div className="progress-bar">
+          <div
+            className="progress-fill"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+
+        <p style={{
+          fontSize: '0.85rem',
+          color: 'var(--text-tertiary)',
+          textAlign: 'center',
+          marginTop: '0.65rem',
+          marginBottom: 0,
+        }}>
+          {votesCount} / {totalPlayers} ont vote
+        </p>
+      </div>
+
+      {/* 3. Vote grid or confirmation */}
+      {!hasVoted ? (
+        <>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: '1rem',
+            width: '100%',
+            maxWidth: 700,
+          }}>
+            {otherPlayers.map(player => {
+              const isSelected = selected === player.id
+              return (
+                <div
+                  key={player.id}
+                  className={`vote-card${isSelected ? ' selected' : ''}`}
+                  onClick={() => setSelected(player.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setSelected(player.id) }}
+                >
+                  <Avatar name={player.name} size="md" />
+
+                  <span style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    color: 'var(--text-primary)',
+                    marginTop: '0.5rem',
+                  }}>
+                    {player.name}
+                  </span>
+
+                  {isSelected && (
+                    <span style={{
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
+                      width: 24,
+                      height: 24,
+                      borderRadius: 'var(--radius-full)',
+                      background: 'var(--accent-violet)',
+                      color: '#fff',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '1rem',
-                      padding: '1rem 1.25rem',
-                      background: selected === player.id ? '#ef444415' : 'var(--bg-elevated)',
-                      border: `2px solid ${selected === player.id ? 'var(--red)' : 'var(--border)'}`,
-                      borderRadius: 'var(--radius)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      width: '100%',
-                      textAlign: 'left',
-                      color: 'var(--text)',
-                      boxShadow: selected === player.id ? '0 0 20px var(--red-glow)' : 'none',
-                    }}
-                  >
-                    <div style={{
-                      width: 44, height: 44, borderRadius: '50%',
-                      background: selected === player.id ? 'var(--red)' : 'var(--bg-card)',
-                      border: `2px solid ${selected === player.id ? 'var(--red)' : 'var(--border)'}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.2rem',
-                      color: selected === player.id ? '#fff' : 'var(--text-muted)',
-                      transition: 'all 0.2s ease',
-                      flexShrink: 0,
+                      justifyContent: 'center',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
                     }}>
-                      {player.name[0].toUpperCase()}
-                    </div>
-                    <span style={{
-                      fontFamily: 'var(--font-display)',
-                      fontWeight: 600,
-                      fontSize: '1.1rem',
-                      flex: 1,
-                    }}>
-                      {player.name}
-                      {player.id === room.hostId && <span style={{ color: 'var(--text-dim)', fontWeight: 400, fontSize: '0.82rem', marginLeft: '0.4rem' }}>(hote)</span>}
+                      ✓
                     </span>
-                    {selected === player.id && (
-                      <span style={{ color: 'var(--red)', fontSize: '1.3rem' }}>🎯</span>
-                    )}
-                  </button>
-                ))}
-            </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
-        ) : (
-          <div className="card-glow" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-            <p style={{ color: 'var(--green)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.4rem', marginBottom: '0.5rem' }}>
-              Vote enregistre !
-            </p>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-              Tu as vote contre <strong style={{ color: 'var(--text)' }}>{room.players.find(p => p.id === selected)?.name}</strong>
-            </p>
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', marginTop: '1rem' }}>
-              En attente des autres joueurs...
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Panneau droit — Progression + Illustration */}
-      <div className="panel-right fade-up" style={{ animationDelay: '0.1s', alignItems: 'center' }}>
-
-        <div className="float">
-          <SpyIllustration size={320} />
-        </div>
-
-        <div className="card" style={{ width: '100%', maxWidth: 440, padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', marginBottom: '0.75rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Votes recus</span>
-            <span style={{ color: 'var(--amber)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.2rem' }}>
-              {votesCount} / {totalPlayers}
-            </span>
+          {/* 4. Confirm bar */}
+          <div style={{
+            width: '100%',
+            maxWidth: 700,
+            display: 'flex',
+            justifyContent: 'center',
+          }}>
+            <button
+              className="btn btn-primary"
+              onClick={handleVote}
+              disabled={!selected}
+              style={{
+                minWidth: 240,
+                opacity: selected ? 1 : 0.5,
+                cursor: selected ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Confirmer mon vote
+            </button>
           </div>
-          <div style={{ background: 'var(--bg-elevated)', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              background: 'var(--amber)',
-              borderRadius: 999,
-              width: `${totalPlayers > 0 ? (votesCount / totalPlayers) * 100 : 0}%`,
-              transition: 'width 0.4s ease',
-              boxShadow: '0 0 12px var(--amber)',
-            }} />
+        </>
+      ) : (
+        /* 5. Confirmation card */
+        <div
+          className="glass-strong"
+          style={{
+            width: '100%',
+            maxWidth: 480,
+            textAlign: 'center',
+            padding: '2.5rem 2rem',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <div style={{
+            width: 56,
+            height: 56,
+            borderRadius: 'var(--radius-full)',
+            background: 'rgba(34, 197, 94, 0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem',
+            fontSize: '1.6rem',
+          }}>
+            ✅
           </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '0.75rem', textAlign: 'center' }}>
-            Les resultats seront reveles quand tout le monde aura vote
+
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            fontSize: '1.4rem',
+            color: 'var(--accent-green)',
+            marginBottom: '0.5rem',
+          }}>
+            Vote enregistre !
+          </h2>
+
+          <p style={{
+            color: 'var(--text-secondary)',
+            fontSize: '0.95rem',
+            marginBottom: '0.25rem',
+          }}>
+            Tu as vote contre{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>
+              {room.players.find(p => p.id === selected)?.name}
+            </strong>
+          </p>
+
+          <p style={{
+            color: 'var(--text-tertiary)',
+            fontSize: '0.88rem',
+            marginTop: '1rem',
+          }}>
+            En attente des autres joueurs...
           </p>
         </div>
-
-        <div className="card-glass" style={{ width: '100%', maxWidth: 440, padding: '1.25rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            <strong style={{ color: 'var(--amber)' }}>+2 pts</strong> si tu votes correctement
-            <br />
-            <strong style={{ color: 'var(--red)' }}>+3 pts</strong> pour l'imposteur s'il n'est pas decouvert
-          </div>
-        </div>
-      </div>
-
-      {/* Footer action bar */}
-      <div className="action-bar">
-        <div className="action-bar-label">
-          <span>🗳️ Phase de vote · {votesCount}/{totalPlayers} votes</span>
-        </div>
-        {!hasVoted ? (
-          <button
-            className="action-bar-item danger arrow-right"
-            onClick={handleVote}
-            disabled={!selected}
-          >
-            {selected
-              ? `Voter contre ${room.players.find(p => p.id === selected)?.name}`
-              : 'Selectionne un joueur'}
-          </button>
-        ) : (
-          <div className="action-bar-label" style={{ justifyContent: 'flex-end' }}>
-            <span>En attente des autres joueurs...</span>
-          </div>
-        )}
-      </div>
-
+      )}
     </div>
   )
 }
