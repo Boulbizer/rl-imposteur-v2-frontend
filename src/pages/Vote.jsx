@@ -50,7 +50,7 @@ export default function Vote() {
           color: 'var(--text-secondary)',
           fontSize: '0.95rem',
         }}>
-          Designez le joueur que vous suspectez
+          Désignez le joueur que vous soupçonnez
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export default function Vote() {
             fontSize: '0.9rem',
             color: 'var(--text-secondary)',
           }}>
-            Votes recus
+            Votes reçus
           </span>
           <span style={{
             fontFamily: 'var(--font-display)',
@@ -100,7 +100,7 @@ export default function Vote() {
           marginTop: '0.65rem',
           marginBottom: 0,
         }}>
-          {votesCount} / {totalPlayers} ont vote
+          {votesCount} / {totalPlayers} ont voté
         </p>
       </div>
 
@@ -215,7 +215,7 @@ export default function Vote() {
             color: 'var(--accent-green)',
             marginBottom: '0.5rem',
           }}>
-            Vote enregistre !
+            Vote enregistré !
           </h2>
 
           <p style={{
@@ -223,7 +223,7 @@ export default function Vote() {
             fontSize: '0.95rem',
             marginBottom: '0.25rem',
           }}>
-            Tu as vote contre{' '}
+            Tu as voté contre{' '}
             <strong style={{ color: 'var(--text-primary)' }}>
               {room.players.find(p => p.id === selected)?.name}
             </strong>

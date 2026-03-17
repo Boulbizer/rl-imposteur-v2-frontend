@@ -62,7 +62,7 @@ export default function Lobby() {
             color: 'var(--accent-violet)',
             marginBottom: '0.25rem',
           }}>
-            Tu es invite !
+            Tu es invité !
           </h2>
           <p style={{
             fontFamily: 'var(--font-body)',
@@ -121,7 +121,7 @@ export default function Lobby() {
           fontFamily: 'var(--font-body)',
           color: 'var(--text-secondary)',
         }}>
-          Connexion a la salle...
+          Connexion à la salle...
         </p>
       </div>
     )
@@ -215,13 +215,13 @@ export default function Lobby() {
             onClick={handleCopyLink}
             style={{ padding: '0.4rem 0.85rem', fontSize: '0.82rem', flexShrink: 0 }}
           >
-            {copied ? 'Copie !' : 'Copier'}
+            {copied ? 'Copié !' : 'Copier'}
           </button>
         </div>
 
         {/* Players grid */}
         <div>
-          <div className="section-label">Joueurs connectes</div>
+          <div className="section-label">Joueurs connectés</div>
           <div className="players-grid">
             {players.map(player => {
               const isMe = player.id === socketId
@@ -254,7 +254,7 @@ export default function Lobby() {
                       </span>
                     )}
                   </span>
-                  {playerIsHost && <span className="badge badge-host">Hote</span>}
+                  {playerIsHost && <span className="badge badge-host">Hôte</span>}
                 </div>
               )
             })}
@@ -308,7 +308,7 @@ export default function Lobby() {
             color: 'var(--text-secondary)',
             fontSize: '0.9rem',
           }}>
-            {players.length}/{MAX_PLAYERS} joueurs prets
+            {players.length}/{MAX_PLAYERS} joueurs prêts
           </span>
 
           {isHost ? (
@@ -318,8 +318,8 @@ export default function Lobby() {
               disabled={players.length < 2}
             >
               {players.length < 2
-                ? "En attente d'un autre joueur..."
-                : `Lancer la partie`}
+                ? "En attente d'un autre joueur…"
+                : 'Lancer la partie'}
             </button>
           ) : (
             <span style={{
@@ -338,7 +338,7 @@ export default function Lobby() {
         borderRadius: 'var(--radius-lg)',
         padding: '1.75rem',
       }}>
-        <div className="section-label" style={{ color: 'var(--accent-violet)' }}>Regles du jeu</div>
+        <div className="section-label" style={{ color: 'var(--accent-violet)' }}>Règles du jeu</div>
         <ul style={{
           listStyle: 'none',
           padding: 0,
@@ -348,11 +348,11 @@ export default function Lobby() {
           gap: '0.85rem',
         }}>
           {[
-            { icon: '🎭', text: "Un imposteur secret est designe au lancement" },
+            { icon: '🎭', text: "Un imposteur secret est désigné au lancement" },
             { icon: '🚗', text: "Jouez votre partie Rocket League normalement" },
-            { icon: '🕵️', text: "L'imposteur doit faire perdre son equipe discretement" },
-            { icon: '🗳️', text: "A la fin : tout le monde vote pour designer l'imposteur" },
-            { icon: '🏆', text: "Bons votants +2 pts · Imposteur non decouvert +3 pts" },
+            { icon: '🕵️', text: "L'imposteur doit faire perdre son équipe discrètement" },
+            { icon: '🗳️', text: "À la fin : tout le monde vote pour désigner l'imposteur" },
+            { icon: '🏆', text: "Bons votants +2 pts · Imposteur non découvert +3 pts" },
           ].map(({ icon, text }) => (
             <li key={text} style={{
               display: 'flex',

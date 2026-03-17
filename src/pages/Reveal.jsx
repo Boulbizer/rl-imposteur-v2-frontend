@@ -1,9 +1,10 @@
 // pages/Reveal.jsx
-// Cyberpunk style + split fullscreen layout
+// Glassmorphism light UI — centered layout
 
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
+import Avatar from '../components/Avatar'
 
 export default function Reveal() {
   const { roomId } = useParams()
@@ -24,59 +25,64 @@ export default function Reveal() {
   }, [roomId, requestScores])
 
   if (!results) return (
-    <div className="page-split">
-      <div className="panel-left" style={{ background: 'var(--bg)', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
-        <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Chargement des resultats...</p>
-      </div>
-      <div className="panel-right" />
-      <div className="action-bar">
-        <div className="action-bar-label"><span>Chargement...</span></div>
-        <div className="action-bar-label"><span></span></div>
-      </div>
+    <div className="container fade-up" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '80vh',
+      gap: '1rem',
+    }}>
+      <div className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+      <p style={{ color: 'var(--text-secondary)' }}>Chargement des résultats...</p>
     </div>
   )
 
   const { impostorFound, impostorName, accusedName, pointsAwarded, players, tally } = results
   const myPoints = socketId ? (pointsAwarded[socketId] || 0) : 0
   const isImpostor = results.impostorId === socketId
-  const resultColor = impostorFound ? 'var(--green)' : 'var(--red)'
 
   // ── PHASE SUSPENSE ──
   if (phase === 'suspense') {
     return (
-      <div className="page-split">
-        <div className="panel-left" style={{ background: 'linear-gradient(135deg, #07071a 0%, #131335 50%, #0d0d28 100%)', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="fade-up" style={{ textAlign: 'center' }}>
-            <div style={{
-              fontSize: '6rem',
-              animation: 'suspensePulse 0.6s ease-in-out infinite alternate',
-              marginBottom: '2rem',
-            }}>
-              🕵️
-            </div>
-            <h2 style={{ fontSize: '2.5rem', color: 'var(--text)', marginBottom: '0.75rem' }}>
-              Revelation...
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem' }}>
-              Decouvrons ensemble qui etait l'imposteur
-            </p>
-            <div style={{ marginTop: '2.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-              {[0, 1, 2].map(i => (
-                <div key={i} style={{
-                  width: 12, height: 12,
-                  borderRadius: '50%',
-                  background: 'var(--purple)',
-                  animation: `dotBounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-                }} />
-              ))}
-            </div>
+      <div className="container fade-up" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '80vh',
+        gap: '1.5rem',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: '5rem',
+            animation: 'suspensePulse 0.6s ease-in-out infinite alternate',
+            marginBottom: '1.5rem',
+          }}>
+            🕵️
           </div>
-        </div>
-        <div className="panel-right" />
-        <div className="action-bar">
-          <div className="action-bar-label"><span>Revelation en cours...</span></div>
-          <div className="action-bar-label"><span></span></div>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+            fontWeight: 800,
+            color: 'var(--text-primary)',
+            marginBottom: '0.5rem',
+          }}>
+            Révélation...
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
+            Découvrons ensemble qui était l'imposteur
+          </p>
+          <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{
+                width: 12, height: 12,
+                borderRadius: '50%',
+                background: 'var(--violet)',
+                animation: `dotBounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+              }} />
+            ))}
+          </div>
         </div>
         <style>{`
           @keyframes suspensePulse {
@@ -94,197 +100,221 @@ export default function Reveal() {
 
   // ── PHASE REVEAL + POINTS ──
   return (
-    <div className="page-split">
+    <div className="container fade-up" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '1.5rem',
+      padding: '2rem 1rem',
+      paddingBottom: '3rem',
+      minHeight: '100vh',
+    }}>
 
-      {/* Panneau gauche — Résultat principal + mes points */}
-      <div className="panel-left fade-up" style={{
-        background: 'linear-gradient(135deg, #07071a 0%, #131335 50%, #0d0d28 100%)',
-        alignItems: 'center',
-        justifyContent: 'center',
+      {/* Reveal card */}
+      <div className="glass-strong" style={{
+        width: '100%',
+        maxWidth: 600,
+        textAlign: 'center',
+        padding: '2.5rem 2rem',
+        borderRadius: 'var(--radius-lg)',
+        animation: 'revealPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
       }}>
-        {/* Résultat principal */}
-        <div
-          className="card-glow"
-          style={{
-            width: '100%',
-            maxWidth: 480,
-            textAlign: 'center',
-            padding: '2.5rem 2rem',
-            borderColor: resultColor,
-            boxShadow: impostorFound
-              ? '0 0 60px #10b98144, inset 0 0 60px #10b98108'
-              : '0 0 60px var(--red-glow), inset 0 0 60px #ef444408',
-            animation: 'revealPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-          }}
-        >
-          <div style={{ fontSize: '4.5rem', marginBottom: '1rem' }}>
-            {impostorFound ? '🎉' : '😈'}
-          </div>
-          <div style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            color: resultColor,
-            marginBottom: '0.5rem',
-            textTransform: 'uppercase',
-          }}>
-            {impostorFound ? 'Imposteur demasque !' : "L'imposteur s'echappe !"}
-          </div>
-          <div style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2rem, 4vw, 3rem)',
-            fontWeight: 700,
-            color: 'var(--text)',
-            margin: '0.75rem 0',
-          }}>
-            {impostorName}
-          </div>
-          <span className={`badge ${impostorFound ? 'badge-crew' : 'badge-impostor'}`}>
-            {impostorFound ? '✓ Decouvert' : '✗ Non decouvert'}
-          </span>
-          {!impostorFound && accusedName && accusedName !== impostorName && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '1rem' }}>
-              Vous avez vote contre <strong style={{ color: 'var(--text)' }}>{accusedName}</strong> — qui etait innocent.
-            </p>
-          )}
+        <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>
+          {impostorFound ? '🎉' : '😈'}
         </div>
 
-        {/* Mes points (phase points) */}
-        {phase === 'points' && (
-          <div className="card fade-in" style={{
-            width: '100%', maxWidth: 480, textAlign: 'center', padding: '1.75rem',
-            borderColor: myPoints > 0 ? 'var(--purple)' : 'var(--border)',
-            background: myPoints > 0 ? '#7c3aed10' : 'var(--bg-card)',
-          }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Tes points cette manche
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontSize: '4rem', fontWeight: 700,
-              color: myPoints > 0 ? 'var(--purple)' : 'var(--text-muted)', lineHeight: 1,
-            }}>
-              +{myPoints}
-            </div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-              {isImpostor
-                ? myPoints > 0 ? '😈 Non decouvert — belle performance !' : '😅 Decouvert cette fois...'
-                : myPoints > 0 ? '🎯 Bonne intuition !' : "😐 Tu n'as pas vise le bon joueur"}
-            </div>
-          </div>
-        )}
+        <h1 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+          fontWeight: 800,
+          color: 'var(--text-primary)',
+          marginBottom: '1rem',
+        }}>
+          L'imposteur était...
+        </h1>
+
+        <Avatar name={impostorName} size="lg" />
+
+        <div style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(1.4rem, 3vw, 1.8rem)',
+          fontWeight: 700,
+          color: impostorFound ? 'var(--red)' : 'var(--orange)',
+          margin: '0.75rem 0 0.5rem',
+        }}>
+          {impostorName} !
+        </div>
+
+        <p style={{
+          color: 'var(--text-secondary)',
+          fontSize: '0.95rem',
+          lineHeight: 1.6,
+          maxWidth: 420,
+          margin: '0 auto',
+        }}>
+          {impostorFound
+            ? `L'imposteur a été démasqué par ${tally[results.impostorId] || 0} joueurs sur ${players.length}.`
+            : `L'imposteur n'a pas été découvert !`}
+          {accusedName && !impostorFound && accusedName !== impostorName && (
+            <> Vous avez voté contre <strong style={{ color: 'var(--text-primary)' }}>{accusedName}</strong> — qui était innocent.</>
+          )}
+        </p>
+
+        <div style={{ marginTop: '1rem' }}>
+          <span className={`badge ${impostorFound ? 'badge-found' : 'badge-impostor'}`}>
+            {impostorFound ? '✓ Démasqué' : '✗ Non découvert'}
+          </span>
+        </div>
       </div>
 
-      {/* Panneau droit — Détails des votes + points de tous */}
-      <div className="panel-right fade-up" style={{ animationDelay: '0.1s', justifyContent: 'flex-start', paddingTop: '3rem' }}>
+      {/* My points card */}
+      {phase === 'points' && (
+        <div className="glass fade-up" style={{
+          width: '100%',
+          maxWidth: 600,
+          textAlign: 'center',
+          padding: '1.75rem 2rem',
+          borderRadius: 'var(--radius-lg)',
+        }}>
+          <div className="section-label" style={{ marginBottom: '0.5rem' }}>
+            Tes points cette manche
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '3rem',
+            fontWeight: 700,
+            color: myPoints > 0 ? 'var(--green)' : 'var(--text-tertiary)',
+            lineHeight: 1.2,
+          }}>
+            +{myPoints}
+          </div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+            {isImpostor
+              ? myPoints > 0 ? '😈 Non découvert — belle performance !' : '😅 Découvert cette fois...'
+              : myPoints > 0 ? '🎯 Bonne intuition !' : "😐 Tu n'as pas visé le bon joueur"}
+          </div>
+        </div>
+      )}
 
-        {/* Décompte des votes */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div className="section-label">Resultats du vote</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+      {/* Scores table */}
+      {phase === 'points' && (
+        <div className="glass-strong fade-up" style={{
+          width: '100%',
+          maxWidth: 600,
+          padding: '1.75rem 2rem',
+          borderRadius: 'var(--radius-lg)',
+        }}>
+          <h3 style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            fontSize: '1.1rem',
+            color: 'var(--text-primary)',
+            marginBottom: '1.25rem',
+          }}>
+            📊 Scores — Manche {room?.round || ''}
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {players
               .slice()
-              .sort((a, b) => (tally[b.id] || 0) - (tally[a.id] || 0))
-              .map(player => {
-                const votes = tally[player.id] || 0
-                const pct = players.length > 1 ? (votes / (players.length - 1)) * 100 : 0
+              .sort((a, b) => (pointsAwarded[b.id] || 0) - (pointsAwarded[a.id] || 0))
+              .map((player, i) => {
+                const pts = pointsAwarded[player.id] || 0
+                const isMe = player.id === socketId
                 const isActualImpostor = player.id === results.impostorId
+                const votedFor = results.votes?.[player.id]
+                const votedForName = players.find(p => p.id === votedFor)?.name
+                const votedCorrectly = votedFor === results.impostorId
+
                 return (
-                  <div key={player.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{
-                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.95rem',
-                      width: 130, flexShrink: 0,
-                      color: isActualImpostor ? 'var(--red)' : 'var(--text)',
-                      display: 'flex', alignItems: 'center', gap: '0.4rem',
+                  <div key={player.id} className="score-row" style={{
+                    background: isMe ? 'rgba(139, 92, 246, 0.07)' : undefined,
+                    border: isMe ? '1px solid rgba(139, 92, 246, 0.15)' : '1px solid transparent',
+                  }}>
+                    <span className="score-rank" style={{
+                      color: i < 3 ? 'var(--green)' : 'var(--text-tertiary)',
+                      fontWeight: 700,
                     }}>
-                      {isActualImpostor && '🎭'}
-                      {player.name}
+                      {i + 1}
                     </span>
-                    <div style={{ flex: 1, background: 'var(--bg-elevated)', borderRadius: 999, height: 8, overflow: 'hidden' }}>
-                      <div style={{
-                        height: '100%', width: `${pct}%`,
-                        background: isActualImpostor ? 'var(--red)' : 'var(--text-dim)',
-                        borderRadius: 999, transition: 'width 0.8s ease',
-                        boxShadow: isActualImpostor ? '0 0 8px var(--red)' : 'none',
-                      }} />
+
+                    <Avatar name={player.name} size="sm" />
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span className="score-player">
+                        {player.name}
+                      </span>
+                      {isActualImpostor && (
+                        <span className="badge badge-impostor" style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                          🎭 Imposteur
+                        </span>
+                      )}
+                      {!isActualImpostor && votedForName && (
+                        <span className={`badge ${votedCorrectly ? 'badge-found' : 'badge-impostor'}`} style={{ marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.15rem 0.5rem' }}>
+                          {votedCorrectly ? '✓' : '✗'} A voté {votedForName}
+                        </span>
+                      )}
                     </div>
+
                     <span style={{
-                      fontSize: '0.9rem', color: votes > 0 ? 'var(--text)' : 'var(--text-dim)',
-                      width: 24, textAlign: 'right', fontFamily: 'var(--font-display)', fontWeight: 700,
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 700,
+                      fontSize: '1.05rem',
+                      color: 'var(--text-primary)',
+                      minWidth: 40,
+                      textAlign: 'right',
                     }}>
-                      {votes}
+                      {player.totalScore ?? '—'}
+                    </span>
+                    <span style={{
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      color: pts > 0 ? 'var(--green)' : 'var(--text-tertiary)',
+                      minWidth: 35,
+                    }}>
+                      +{pts}
                     </span>
                   </div>
                 )
               })}
           </div>
         </div>
+      )}
 
-        {/* Points de tous les joueurs (phase points) */}
-        {phase === 'points' && (
-          <>
-            <div className="card fade-in" style={{ padding: '1.5rem' }}>
-              <div className="section-label">Points gagnes cette manche</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {players
-                  .slice()
-                  .sort((a, b) => (pointsAwarded[b.id] || 0) - (pointsAwarded[a.id] || 0))
-                  .map((player, i) => {
-                    const pts = pointsAwarded[player.id] || 0
-                    const isMe = player.id === socketId
-                    return (
-                      <div key={player.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '0.75rem',
-                        padding: '0.5rem 0.75rem',
-                        background: isMe ? '#7c3aed15' : 'transparent',
-                        borderRadius: 'var(--radius)',
-                      }}>
-                        <span style={{ width: 22, textAlign: 'center', fontSize: '0.82rem', color: 'var(--text-dim)', fontFamily: 'var(--font-display)' }}>
-                          {i + 1}
-                        </span>
-                        <span style={{
-                          flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600,
-                          color: isMe ? '#a78bfa' : 'var(--text)',
-                        }}>
-                          {player.name}
-                          {player.id === results.impostorId && ' 🎭'}
-                        </span>
-                        <span style={{
-                          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.1rem',
-                          color: pts > 0 ? 'var(--green)' : 'var(--text-dim)',
-                        }}>
-                          +{pts} pt{pts > 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    )
-                  })}
-              </div>
+      {/* Action buttons */}
+      {phase === 'points' && (
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          marginTop: '0.5rem',
+        }}>
+          {amHost ? (
+            <button
+              className="btn btn-primary"
+              onClick={() => startNextRound(roomId)}
+            >
+              ▶ Manche suivante
+            </button>
+          ) : (
+            <div style={{
+              color: 'var(--text-secondary)',
+              fontSize: '0.9rem',
+              padding: '0.75rem 1.5rem',
+            }}>
+              En attente que <strong style={{ color: 'var(--text-primary)' }}>{room?.hostName}</strong> lance la manche suivante...
             </div>
-          </>
-        )}
-      </div>
-
-      {/* Footer action bar */}
-      <div className="action-bar">
-        <button
-          className="action-bar-item secondary"
-          onClick={() => navigate(`/room/${roomId}/scores`)}
-        >
-          📊 Classement general
-        </button>
-        {amHost ? (
+          )}
           <button
-            className="action-bar-item primary arrow-right neon-pulse"
-            onClick={() => startNextRound(roomId)}
+            className="btn btn-glass"
+            onClick={() => navigate(`/room/${roomId}/scores`)}
           >
-            🔄 Manche {room?.round ? room.round + 1 : 'suivante'}
+            📊 Classement général
           </button>
-        ) : (
-          <div className="action-bar-label" style={{ justifyContent: 'flex-end' }}>
-            En attente que <strong style={{ color: 'var(--text)' }}>{room?.hostName}</strong> lance la manche suivante...
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes revealPop {
