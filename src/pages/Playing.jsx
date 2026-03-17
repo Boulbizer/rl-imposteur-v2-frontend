@@ -108,12 +108,15 @@ export default function Playing() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '0.5rem',
+          color: 'var(--red)',
+          borderColor: 'rgba(239, 68, 68, 0.3)',
+          background: 'rgba(239, 68, 68, 0.08)',
         }}>
           <span style={{
             width: 8,
             height: 8,
             borderRadius: 'var(--radius-full)',
-            background: 'var(--accent-red)',
+            background: 'var(--red)',
             display: 'inline-block',
             animation: 'pulse 1.5s ease-in-out infinite',
           }} />

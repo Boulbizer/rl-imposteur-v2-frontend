@@ -133,7 +133,9 @@ export default function Reveal() {
           L'imposteur était...
         </h1>
 
-        <Avatar name={impostorName} size="lg" />
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Avatar name={impostorName} size="lg" />
+        </div>
 
         <div style={{
           fontFamily: 'var(--font-display)',
