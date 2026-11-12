@@ -1,21 +1,23 @@
-// pages/Playing.jsx
+// pages/Playing.tsx
 // Glassmorphism light UI — centered column layout
 
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
-import socket from '../lib/socket'
+import { MODE_LABELS, ROLE_INFO } from '../lib/roles'
 
 export default function Playing() {
-  const { roomId } = useParams()
-  const { room, isImpostor, socketId, endGame } = useGame()
-  const actualIsImpostor = sessionStorage.getItem('rl_isImpostor') === 'true'
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
+  const { room, isImpostor, role, mission, clue, socketId, endGame } = useGame()
+  // Ancien serveur (sans rôles) : on retombe sur imposteur / équipier
+  const info = ROLE_INFO[role ?? (isImpostor ? 'impostor' : 'teammate')]
   const [roleAcknowledged, setRoleAcknowledged] = useState(false)
 
   if (!room) return null
 
-  const isHost = room.hostId === socket.id
+  const isHost = room.hostId === socketId
 
   return (
     <div className="container fade-up" style={{
@@ -44,26 +46,24 @@ export default function Playing() {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: actualIsImpostor
-            ? 'rgba(220, 38, 38, 0.08)'
-            : 'rgba(37, 99, 235, 0.06)',
+          background: info.tint,
           pointerEvents: 'none',
           borderRadius: 'inherit',
         }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 56, lineHeight: 1, marginBottom: '0.75rem' }}>
-            {actualIsImpostor ? '🎭' : '⚽'}
+            {info.emoji}
           </div>
 
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
             fontWeight: 700,
-            color: actualIsImpostor ? 'var(--impostor-red)' : 'var(--safe-blue)',
+            color: info.color,
             marginBottom: '0.5rem',
-          }}>
-            {actualIsImpostor ? "Tu es l'Imposteur" : 'Tu es Équipier'}
+          }} data-testid="role-title">
+            {info.title}
           </h1>
 
           <p style={{
@@ -73,10 +73,34 @@ export default function Playing() {
             maxWidth: 380,
             margin: '0 auto 1.25rem',
           }}>
-            {actualIsImpostor
-              ? "Fais perdre ton équipe sans te faire repérer. Sois subtil et discret."
-              : "Joue normalement et observe. Quelqu'un cherche à vous faire perdre."}
+            {info.goal}
           </p>
+
+          {mission && (
+            <div className="glass-subtle" data-testid="mission" style={{
+              textAlign: 'left',
+              padding: '0.9rem 1.1rem',
+              borderRadius: 'var(--radius-md)',
+              margin: '0 auto 1rem',
+              maxWidth: 420,
+            }}>
+              <div className="section-label" style={{ marginBottom: '0.35rem' }}>🎯 Ta mission secrète</div>
+              <div data-testid="mission-text" style={{ color: 'var(--text-primary)', lineHeight: 1.5 }}>{mission}</div>
+            </div>
+          )}
+
+          {clue && (
+            <div className="glass-subtle" data-testid="clue" style={{
+              textAlign: 'left',
+              padding: '0.9rem 1.1rem',
+              borderRadius: 'var(--radius-md)',
+              margin: '0 auto 1rem',
+              maxWidth: 420,
+            }}>
+              <div className="section-label" style={{ marginBottom: '0.35rem' }}>🔎 Ton indice</div>
+              <div style={{ color: 'var(--text-primary)', lineHeight: 1.5 }}>{clue}</div>
+            </div>
+          )}
 
           {!roleAcknowledged && (
             <button
@@ -129,7 +153,7 @@ export default function Playing() {
           fontSize: '0.95rem',
           color: 'var(--text-secondary)',
         }}>
-          Manche {room.round}{room.totalRounds ? ` / ${room.totalRounds}` : ''}
+          Manche {room.round} · {MODE_LABELS[room.settings?.mode ?? '3v3']}
         </span>
       </div>
 
@@ -199,8 +223,8 @@ export default function Playing() {
                 </span>
 
                 {/* Impostor sees mask next to own name */}
-                {isSelf && actualIsImpostor && (
-                  <span style={{ fontSize: '1.2rem' }} title="Tu es l'imposteur">🎭</span>
+                {isSelf && role && role !== 'teammate' && (
+                  <span style={{ fontSize: '1.2rem' }} title={info.label}>{info.emoji}</span>
                 )}
               </div>
             )

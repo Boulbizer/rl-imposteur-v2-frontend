@@ -1,20 +1,26 @@
-// pages/Vote.jsx
+// pages/Vote.tsx
 // Glassmorphism light UI — centered column layout
 
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
+import Countdown from '../components/Countdown'
 
 export default function Vote() {
-  const { roomId } = useParams()
-  const { room, socketId, castVote, votesCount } = useGame()
-  const [selected, setSelected] = useState(null)
-  const [hasVoted, setHasVoted] = useState(false)
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
+  const { room, socketId, castVote, votesCount: liveVotesCount } = useGame()
+  const [selected, setSelected] = useState<string | null>(null)
+  const [votedLocally, setHasVoted] = useState(false)
 
   if (!room) return null
 
-  const totalPlayers = room.players.length
+  // L'état du vote vient du serveur : il survit à un rechargement de page
+  const me = room.players.find(p => p.id === socketId)
+  const hasVoted = votedLocally || !!me?.hasVoted
+  const votesCount = Math.max(liveVotesCount, room.votesCount || 0)
+  const totalPlayers = room.players.filter(p => !p.disconnected).length
   const otherPlayers = room.players.filter(p => p.id !== socketId)
   const progressPct = totalPlayers > 0 ? (votesCount / totalPlayers) * 100 : 0
 
@@ -52,6 +58,9 @@ export default function Vote() {
         }}>
           Désignez le joueur que vous soupçonnez
         </p>
+        <div style={{ marginTop: '0.75rem' }}>
+          <Countdown endsAt={room.phaseEndsAt} label="Fin du vote" />
+        </div>
       </div>
 
       {/* 2. Progress indicator */}

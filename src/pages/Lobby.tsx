@@ -2,34 +2,35 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
+import SettingsPanel from '../components/SettingsPanel'
 
 const MAX_PLAYERS = 10
 
 export default function Lobby() {
-  const { roomId } = useParams()
-  const { room, myName, socketId, joinRoom, startGame, error, setError, loading } = useGame()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
+  const { room, myName, myId, joinRoom, startGame, updateSettings, error, setError, loading } = useGame()
 
   const [nameInput, setNameInput] = useState('')
   const [copied, setCopied] = useState(false)
-  const [joining, setJoining] = useState(false)
 
-  const hasJoined = room && (
-    room.players.some(p => p.id === socketId) ||
-    room.players.some(p => p.name === myName)
-  )
-  const isHost = room && room.hostId === socketId
-  const inviteUrl = `${window.location.origin}/room/${roomId}`
+  const code = (roomId || '').toUpperCase()
+  // On est dans la salle seulement si le serveur nous y a enregistré (identifiant stable)
+  const hasJoined = !!(room && room.id === code && myId && room.players.some(p => p.id === myId))
+  const isHost = hasJoined && room.hostId === myId
+  const socketId = myId
+  const inviteUrl = `${window.location.origin}/room/${code}`
 
+  // Reconnexion / entrée automatique quand on connaît déjà son pseudo
   useEffect(() => {
-    if (!myName || !roomId) return
-    joinRoom(roomId, myName)
-  }, [roomId, myName])
+    if (!myName || !code) return
+    joinRoom(code, myName)
+  }, [code, myName])
 
-  function handleJoin(e) {
+  function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     if (!nameInput.trim()) return
-    setJoining(true)
-    joinRoom(roomId, nameInput.trim())
+    joinRoom(code, nameInput.trim())
   }
 
   function handleCopyLink() {
@@ -39,7 +40,7 @@ export default function Lobby() {
   }
 
   // ── Join form for visitors arriving via invite link ──
-  if (!hasJoined && !myName) {
+  if (!hasJoined && (!myName || error)) {
     return (
       <div className="container fade-up" style={{
         display: 'flex',
@@ -76,7 +77,7 @@ export default function Lobby() {
               background: 'rgba(139,92,246,0.08)',
               padding: '0.15rem 0.4rem',
               borderRadius: 'var(--radius-md)',
-            }}>{roomId}</code>
+            }}>{code}</code>
           </p>
 
           <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
@@ -94,10 +95,10 @@ export default function Lobby() {
             <button
               className="btn btn-primary"
               type="submit"
-              disabled={!nameInput.trim() || joining}
+              disabled={!nameInput.trim() || loading}
               style={{ width: '100%' }}
             >
-              {joining ? 'Connexion...' : 'Rejoindre la salle'}
+              {loading ? 'Connexion...' : 'Rejoindre la salle'}
             </button>
           </form>
         </div>
@@ -106,7 +107,7 @@ export default function Lobby() {
   }
 
   // ── Loading state ──
-  if (!room) {
+  if (!hasJoined) {
     return (
       <div className="container fade-up" style={{
         display: 'flex',
@@ -315,11 +316,11 @@ export default function Lobby() {
             <button
               className="btn btn-primary"
               onClick={() => startGame(room.id)}
-              disabled={players.length < 2}
+              disabled={players.length < 2 || loading}
             >
               {players.length < 2
                 ? "En attente d'un autre joueur…"
-                : 'Lancer la partie'}
+                : loading ? 'Préparation des missions…' : 'Lancer la partie'}
             </button>
           ) : (
             <span style={{
@@ -334,6 +335,8 @@ export default function Lobby() {
       </div>
 
       {/* ── Sidebar ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <SettingsPanel room={room} editable={isHost} onChange={patch => updateSettings(room.id, patch)} />
       <div className="glass" style={{
         borderRadius: 'var(--radius-lg)',
         padding: '1.75rem',
@@ -348,11 +351,11 @@ export default function Lobby() {
           gap: '0.85rem',
         }}>
           {[
-            { icon: '🎭', text: "Un imposteur secret est désigné au lancement" },
+            { icon: '🎭', text: "Chacun reçoit un rôle et une mission secrète" },
             { icon: '🚗', text: "Jouez votre partie Rocket League normalement" },
             { icon: '🕵️', text: "L'imposteur doit faire perdre son équipe discrètement" },
-            { icon: '🗳️', text: "À la fin : tout le monde vote pour désigner l'imposteur" },
-            { icon: '🏆', text: "Bons votants +2 pts · Imposteur non découvert +3 pts" },
+            { icon: '🗣️', text: "À la fin : débat et accusations, puis vote" },
+            { icon: '🏆', text: "Bon vote +2 (Détective +3) · Imposteur non découvert +3 · Bouffon désigné +4" },
           ].map(({ icon, text }) => (
             <li key={text} style={{
               display: 'flex',
@@ -368,6 +371,7 @@ export default function Lobby() {
             </li>
           ))}
         </ul>
+      </div>
       </div>
     </div>
   )

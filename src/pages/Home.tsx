@@ -9,16 +9,16 @@ export default function Home() {
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [roomCode, setRoomCode] = useState('')
 
-  function handleCreate(e) {
+  function handleCreate(e: React.FormEvent | React.MouseEvent) {
     e.preventDefault()
     if (!name.trim()) return
     createRoom(name.trim())
   }
 
-  function handleJoin(e) {
+  function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     if (!roomCode.trim()) return
-    navigate(`/room/${roomCode.trim()}`)
+    navigate(`/room/${roomCode.trim().toUpperCase()}`)
   }
 
   return (
@@ -201,9 +201,9 @@ export default function Home() {
               <input
                 className="input"
                 type="text"
-                placeholder="Code de la salle"
+                placeholder="Code (ex : KBRT)"
                 value={roomCode}
-                onChange={e => setRoomCode(e.target.value)}
+                onChange={e => setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4))}
                 autoFocus
                 style={{ textAlign: 'center', fontSize: '1.1rem', letterSpacing: '0.1em' }}
               />
@@ -219,7 +219,7 @@ export default function Home() {
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={!roomCode.trim()}
+                  disabled={roomCode.trim().length !== 4}
                   style={{ flex: 1 }}
                 >
                   Rejoindre

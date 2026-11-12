@@ -1,4 +1,4 @@
-// pages/Scores.jsx
+// pages/Scores.tsx
 // Glassmorphism light UI — podium + sidebar
 
 import { useEffect } from 'react'
@@ -11,7 +11,8 @@ const PODIUM_HEIGHTS = [120, 155, 95]
 const PODIUM_COLORS = ['#c0c0c0', '#fbbf24', '#cd7f32'] // silver, gold, bronze
 
 export default function Scores() {
-  const { roomId } = useParams()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
   const { scores, room, myName, amHost, requestScores, startNextRound } = useGame()
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function Scores() {
           fontSize: '0.9rem',
           marginBottom: '2rem',
         }}>
-          Après {roundsPlayed} manche{roundsPlayed > 1 ? 's' : ''} sur {room.totalRounds || '?'}
+          Après {roundsPlayed} manche{roundsPlayed > 1 ? 's' : ''}
         </p>
 
         {/* Podium (top 3) */}

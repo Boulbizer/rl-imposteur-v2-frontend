@@ -1,13 +1,16 @@
-// pages/Reveal.jsx
+// pages/Reveal.tsx
 // Glassmorphism light UI — centered layout
 
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
+import RolesRecap from '../components/RolesRecap'
+import { ROLE_INFO } from '../lib/roles'
 
 export default function Reveal() {
-  const { roomId } = useParams()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
   const navigate = useNavigate()
   const { results, room, socketId, amHost, requestScores, startNextRound } = useGame()
 
@@ -41,6 +44,8 @@ export default function Reveal() {
   const { impostorFound, impostorName, accusedName, pointsAwarded, players, tally } = results
   const myPoints = socketId ? (pointsAwarded[socketId] || 0) : 0
   const isImpostor = results.impostorId === socketId
+  const myRole = socketId ? results.roles?.[socketId] : undefined
+  const jesterName = results.jesterId ? results.players.find(p => p.id === results.jesterId)?.name : undefined
 
   // ── PHASE SUSPENSE ──
   if (phase === 'suspense') {
@@ -162,6 +167,12 @@ export default function Reveal() {
           )}
         </p>
 
+        {results.jesterWon && jesterName && (
+          <p data-testid="jester-won" style={{ marginTop: '0.75rem', color: ROLE_INFO.jester.color, fontWeight: 600 }}>
+            🃏 {jesterName} était le Bouffon… et vous l'avez désigné : il remporte la manche !
+          </p>
+        )}
+
         <div style={{ marginTop: '1rem' }}>
           <span className={`badge ${impostorFound ? 'badge-found' : 'badge-impostor'}`}>
             {impostorFound ? '✓ Démasqué' : '✗ Non découvert'}
@@ -193,10 +204,14 @@ export default function Reveal() {
           <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
             {isImpostor
               ? myPoints > 0 ? '😈 Non découvert — belle performance !' : '😅 Découvert cette fois...'
-              : myPoints > 0 ? '🎯 Bonne intuition !' : "😐 Tu n'as pas visé le bon joueur"}
+              : myRole === 'jester'
+                ? myPoints > 0 ? '🃏 Désigné — exactement ce que tu voulais !' : '🃏 Personne n’est tombé dans le piège'
+                : myPoints > 0 ? '🎯 Bonne intuition !' : "😐 Tu n'as pas visé le bon joueur"}
           </div>
         </div>
       )}
+
+      {phase === 'points' && results.roles && <RolesRecap results={results} myId={socketId} />}
 
       {/* Scores table */}
       {phase === 'points' && (
@@ -219,7 +234,7 @@ export default function Reveal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(() => {
               // Build cumulative score lookup by player name
-              const cumulLookup = {}
+              const cumulLookup: Record<string, number> = {}
               if (results.cumulativeScores) {
                 for (const s of results.cumulativeScores) {
                   cumulLookup[s.name] = s.total
@@ -227,7 +242,7 @@ export default function Reveal() {
               }
 
               // Build vote lookup: voterId -> target player name
-              const voteLookup = {}
+              const voteLookup: Record<string, { name: string; correct: boolean }> = {}
               if (results.votes) {
                 for (const [voterId, targetId] of Object.entries(results.votes)) {
                   const target = players.find(p => p.id === targetId)

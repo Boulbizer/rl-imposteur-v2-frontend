@@ -1,4 +1,4 @@
-// components/Illustrations.jsx
+// components/Illustrations.tsx
 // SVG illustrations thématiques RL Imposteur
 // Chaque illustration est un composant React inline SVG
 

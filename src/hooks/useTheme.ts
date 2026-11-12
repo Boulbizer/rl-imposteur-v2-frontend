@@ -29,7 +29,7 @@ function getInitialTheme() {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState(getInitialTheme)
+  const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => {
@@ -45,7 +45,7 @@ export function useTheme() {
   }, [])
 
   // Appelé quand l'utilisateur accepte les cookies pour persister le thème courant
-  const persistTheme = useCallback((currentTheme) => {
+  const persistTheme = useCallback((currentTheme: string) => {
     try {
       localStorage.setItem(THEME_KEY, currentTheme)
     } catch {}
