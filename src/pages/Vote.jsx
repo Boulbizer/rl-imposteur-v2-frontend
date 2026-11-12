@@ -8,13 +8,17 @@ import Avatar from '../components/Avatar'
 
 export default function Vote() {
   const { roomId } = useParams()
-  const { room, socketId, castVote, votesCount } = useGame()
+  const { room, socketId, castVote, votesCount: liveVotesCount } = useGame()
   const [selected, setSelected] = useState(null)
-  const [hasVoted, setHasVoted] = useState(false)
+  const [votedLocally, setHasVoted] = useState(false)
 
   if (!room) return null
 
-  const totalPlayers = room.players.length
+  // L'état du vote vient du serveur : il survit à un rechargement de page
+  const me = room.players.find(p => p.id === socketId)
+  const hasVoted = votedLocally || !!me?.hasVoted
+  const votesCount = Math.max(liveVotesCount, room.votesCount || 0)
+  const totalPlayers = room.players.filter(p => !p.disconnected).length
   const otherPlayers = room.players.filter(p => p.id !== socketId)
   const progressPct = totalPlayers > 0 ? (votesCount / totalPlayers) * 100 : 0
 

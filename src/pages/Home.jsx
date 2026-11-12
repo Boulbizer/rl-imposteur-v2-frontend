@@ -18,7 +18,7 @@ export default function Home() {
   function handleJoin(e) {
     e.preventDefault()
     if (!roomCode.trim()) return
-    navigate(`/room/${roomCode.trim()}`)
+    navigate(`/room/${roomCode.trim().toUpperCase()}`)
   }
 
   return (
@@ -201,9 +201,9 @@ export default function Home() {
               <input
                 className="input"
                 type="text"
-                placeholder="Code de la salle"
+                placeholder="Code (ex : KBRT)"
                 value={roomCode}
-                onChange={e => setRoomCode(e.target.value)}
+                onChange={e => setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4))}
                 autoFocus
                 style={{ textAlign: 'center', fontSize: '1.1rem', letterSpacing: '0.1em' }}
               />
@@ -219,7 +219,7 @@ export default function Home() {
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={!roomCode.trim()}
+                  disabled={roomCode.trim().length !== 4}
                   style={{ flex: 1 }}
                 >
                   Rejoindre

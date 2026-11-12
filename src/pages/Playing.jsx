@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
-import socket from '../lib/socket'
 
 export default function Playing() {
   const { roomId } = useParams()
@@ -15,7 +14,7 @@ export default function Playing() {
 
   if (!room) return null
 
-  const isHost = room.hostId === socket.id
+  const isHost = room.hostId === socketId
 
   return (
     <div className="container fade-up" style={{
