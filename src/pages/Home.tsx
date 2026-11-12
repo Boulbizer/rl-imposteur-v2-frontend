@@ -9,13 +9,13 @@ export default function Home() {
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [roomCode, setRoomCode] = useState('')
 
-  function handleCreate(e) {
+  function handleCreate(e: React.FormEvent | React.MouseEvent) {
     e.preventDefault()
     if (!name.trim()) return
     createRoom(name.trim())
   }
 
-  function handleJoin(e) {
+  function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     if (!roomCode.trim()) return
     navigate(`/room/${roomCode.trim().toUpperCase()}`)

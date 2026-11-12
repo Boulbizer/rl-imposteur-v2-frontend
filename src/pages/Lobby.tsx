@@ -6,7 +6,8 @@ import Avatar from '../components/Avatar'
 const MAX_PLAYERS = 10
 
 export default function Lobby() {
-  const { roomId } = useParams()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
   const { room, myName, myId, joinRoom, startGame, error, setError, loading } = useGame()
 
   const [nameInput, setNameInput] = useState('')
@@ -25,7 +26,7 @@ export default function Lobby() {
     joinRoom(code, myName)
   }, [code, myName])
 
-  function handleJoin(e) {
+  function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     if (!nameInput.trim()) return
     joinRoom(code, nameInput.trim())

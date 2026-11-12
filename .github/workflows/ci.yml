@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # package-lock.json n'est pas versionné dans ce dépôt : npm install
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Backend : même nom de branche s'il existe (changements coordonnés), sinon main
+      - name: Choisir la branche backend
+        id: backend
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          if git ls-remote --exit-code --heads https://github.com/Boulbizer/rl-imposteur-v2-backend.git "$BRANCH" >/dev/null; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: Boulbizer/rl-imposteur-v2-backend
+          ref: ${{ steps.backend.outputs.ref }}
+          path: backend
+      - run: npm install
+      - run: npm ci
+        working-directory: backend
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          BACKEND_DIR: ${{ github.workspace }}/backend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: e2e/screenshots

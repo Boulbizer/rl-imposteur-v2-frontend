@@ -1,38 +1,45 @@
-// hooks/useGame.js
+// hooks/useGame.ts
 // Ce hook centralise TOUTE la logique Socket.io
 // L'état est persisté dans sessionStorage pour survivre aux navigations
-// Reconnexion automatique avec room:rejoin
+// Reconnexion automatique avec room:rejoin + jeton de session
 
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import socket from '../lib/socket'
+import type { PublicRoom, RoundResults, ScoreLine, You } from '../shared/protocol'
 
-function loadFromSession(key, fallback) {
+/** Seule preuve d'identité auprès du serveur. */
+export interface Session {
+  roomId: string
+  playerId: string
+  token: string
+}
+
+function loadFromSession<T>(key: string, fallback: T): T {
   try {
     const val = sessionStorage.getItem(key)
-    return val ? JSON.parse(val) : fallback
+    return val ? (JSON.parse(val) as T) : fallback
   } catch { return fallback }
 }
 
-function saveToSession(key, value) {
-  try { sessionStorage.setItem(key, JSON.stringify(value)) } catch {}
+function saveToSession(key: string, value: unknown) {
+  try { sessionStorage.setItem(key, JSON.stringify(value)) } catch { /* stockage indisponible */ }
 }
 
 export function useGame() {
   const navigate = useNavigate()
 
-  const [room, setRoom]             = useState(() => loadFromSession('rl_room', null))
-  const [myName, setMyName]         = useState(() => loadFromSession('rl_myName', ''))
-  const [isImpostor, setIsImpostor] = useState(() => loadFromSession('rl_isImpostor', false))
+  const [room, setRoom]             = useState<PublicRoom | null>(() => loadFromSession('rl_room', null))
+  const [myName, setMyName]         = useState<string>(() => loadFromSession('rl_myName', ''))
+  const [isImpostor, setIsImpostor] = useState<boolean>(() => loadFromSession('rl_isImpostor', false))
   const [error, setError]           = useState('')
   const [votesCount, setVotesCount] = useState(0)
-  const [results, setResults]       = useState(() => loadFromSession('rl_results', null))
-  const [scores, setScores]         = useState([])
+  const [results, setResults]       = useState<RoundResults | null>(() => loadFromSession('rl_results', null))
+  const [scores, setScores]         = useState<ScoreLine[]>([])
   const [loading, setLoading]       = useState(false)
-  // Session = { roomId, playerId, token } : seule preuve d'identité auprès du serveur
-  const [session, setSession]       = useState(() => loadFromSession('rl_session', null))
+  const [session, setSession]       = useState<Session | null>(() => loadFromSession('rl_session', null))
 
-  const myId = session?.playerId || null
+  const myId = session?.playerId ?? null
   const amHost = !!(room && myId && room.hostId === myId)
 
   useEffect(() => { saveToSession('rl_room', room) }, [room])
@@ -40,26 +47,22 @@ export function useGame() {
   useEffect(() => { saveToSession('rl_isImpostor', isImpostor) }, [isImpostor])
   useEffect(() => { saveToSession('rl_results', results) }, [results])
 
-  // Mémorise l'identité renvoyée par le serveur (jamais déduite du pseudo)
-  const storeIdentity = (room, you) => {
-    if (!room || !you) return
-    const next = { roomId: room.id, playerId: you.playerId, token: you.token }
-    saveToSession('rl_session', next)
-    saveToSession('rl_myName', you.name)
-    setSession(next)
-    setMyName(you.name)
-  }
-
   useEffect(() => {
     if (!socket.connected) socket.connect()
 
+    // Mémorise l'identité renvoyée par le serveur (jamais déduite du pseudo)
+    const storeIdentity = (room: PublicRoom, you: You) => {
+      const next: Session = { roomId: room.id, playerId: you.playerId, token: you.token }
+      saveToSession('rl_session', next)
+      saveToSession('rl_myName', you.name)
+      setSession(next)
+      setMyName(you.name)
+    }
+
     // ─── RECONNEXION AUTOMATIQUE ─────────────────────────────────
-    // Quand le socket se reconnecte, on tente un rejoin automatique
     const handleReconnect = () => {
-      const saved = loadFromSession('rl_session', null)
-      if (saved?.token) {
-        socket.emit('room:rejoin', { roomId: saved.roomId, token: saved.token })
-      }
+      const saved = loadFromSession<Session | null>('rl_session', null)
+      if (saved?.token) socket.emit('room:rejoin', { roomId: saved.roomId, token: saved.token })
     }
     socket.on('connect', handleReconnect)
 
@@ -82,13 +85,11 @@ export function useGame() {
       storeIdentity(room, you)
       setRoom(room)
       setLoading(false)
-      if (isImpostor !== undefined) {
-        setIsImpostor(isImpostor)
-        saveToSession('rl_isImpostor', isImpostor)
-      }
+      setIsImpostor(isImpostor)
+      saveToSession('rl_isImpostor', isImpostor)
     })
 
-    // Jeton refusé (serveur redémarré, salle supprimée…) : on repart de zéro
+    // Jeton refusé (salle supprimée, session expirée…) : on repart de zéro
     socket.on('room:session-lost', ({ message }) => {
       for (const key of ['rl_session', 'rl_room', 'rl_isImpostor', 'rl_results']) {
         sessionStorage.removeItem(key)
@@ -124,19 +125,16 @@ export function useGame() {
     socket.on('vote:registered', ({ votesCount }) => { setVotesCount(votesCount) })
 
     socket.on('reveal:result', ({ results, room }) => {
-      if (room) setRoom(room)
+      setRoom(room)
       saveToSession('rl_results', results)
       setResults(results)
-      const currentRoom = loadFromSession('rl_room', null)
-      if (currentRoom) navigate(`/room/${currentRoom.id}/reveal`)
+      navigate(`/room/${room.id}/reveal`)
     })
 
     socket.on('scores:data', ({ scores, room }) => {
       setScores(scores)
-      if (room) {
-        setRoom(room)
-        saveToSession('rl_room', room)
-      }
+      setRoom(room)
+      saveToSession('rl_room', room)
     })
 
     socket.on('round:next', ({ room }) => {
@@ -166,34 +164,31 @@ export function useGame() {
     }
   }, [navigate])
 
-  const createRoom = useCallback((playerName) => {
+  const createRoom = useCallback((playerName: string) => {
     setError('')
     setLoading(true)
     socket.emit('room:create', { playerName })
   }, [])
 
-  const joinRoom = useCallback((roomId, playerName) => {
+  const joinRoom = useCallback((roomId: string, playerName: string) => {
     setError('')
     setLoading(true)
-    const code = String(roomId).trim().toUpperCase()
-    const saved = loadFromSession('rl_session', null)
+    const code = roomId.trim().toUpperCase()
+    const saved = loadFromSession<Session | null>('rl_session', null)
     // Le jeton n'est envoyé que pour la salle à laquelle il appartient
     const token = saved?.roomId === code ? saved.token : undefined
     socket.emit('room:join', { roomId: code, playerName, token })
   }, [])
 
-  const startGame      = useCallback((roomId) => { socket.emit('game:start', { roomId }) }, [])
-  const endGame        = useCallback((roomId) => { socket.emit('game:end', { roomId }) }, [])
-  const castVote       = useCallback((roomId, targetId) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
-  const requestScores  = useCallback((roomId) => { socket.emit('scores:request', { roomId }) }, [])
-  // Sécurisé : plus de hostName envoyé, le backend vérifie uniquement socket.id
-  const startNextRound = useCallback((roomId) => {
-    socket.emit('round:next', { roomId })
-  }, [])
+  const startGame      = useCallback((roomId: string) => { socket.emit('game:start', { roomId }) }, [])
+  const endGame        = useCallback((roomId: string) => { socket.emit('game:end', { roomId }) }, [])
+  const castVote       = useCallback((roomId: string, targetId: string) => { socket.emit('vote:cast', { roomId, targetId }) }, [])
+  const requestScores  = useCallback((roomId: string) => { socket.emit('scores:request', { roomId }) }, [])
+  const startNextRound = useCallback((roomId: string) => { socket.emit('round:next', { roomId }) }, [])
 
   return {
     room, myName, myId, isImpostor, amHost, error, votesCount, results, scores, loading,
-    // Conservé pour les pages existantes : c'est désormais l'identifiant joueur stable
+    /** Identifiant joueur stable (nom historique conservé pour les pages). */
     socketId: myId,
     createRoom, joinRoom, startGame, endGame, castVote, requestScores, startNextRound, setError,
   }

@@ -1,4 +1,4 @@
-// pages/Playing.jsx
+// pages/Playing.tsx
 // Glassmorphism light UI — centered column layout
 
 import { useState } from 'react'
@@ -7,7 +7,8 @@ import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
 
 export default function Playing() {
-  const { roomId } = useParams()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
   const { room, isImpostor, socketId, endGame } = useGame()
   const actualIsImpostor = sessionStorage.getItem('rl_isImpostor') === 'true'
   const [roleAcknowledged, setRoleAcknowledged] = useState(false)
@@ -128,7 +129,7 @@ export default function Playing() {
           fontSize: '0.95rem',
           color: 'var(--text-secondary)',
         }}>
-          Manche {room.round}{room.totalRounds ? ` / ${room.totalRounds}` : ''}
+          Manche {room.round}
         </span>
       </div>
 

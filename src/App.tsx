@@ -1,4 +1,4 @@
-// App.jsx — Routeur principal
+// App.tsx — Routeur principal
 // Chaque URL correspond à un écran du jeu
 
 import { Routes, Route, Navigate } from 'react-router-dom'

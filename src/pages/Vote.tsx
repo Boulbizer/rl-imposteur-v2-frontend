@@ -1,4 +1,4 @@
-// pages/Vote.jsx
+// pages/Vote.tsx
 // Glassmorphism light UI — centered column layout
 
 import { useState } from 'react'
@@ -7,9 +7,10 @@ import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
 
 export default function Vote() {
-  const { roomId } = useParams()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
   const { room, socketId, castVote, votesCount: liveVotesCount } = useGame()
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState<string | null>(null)
   const [votedLocally, setHasVoted] = useState(false)
 
   if (!room) return null

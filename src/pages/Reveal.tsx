@@ -1,4 +1,4 @@
-// pages/Reveal.jsx
+// pages/Reveal.tsx
 // Glassmorphism light UI — centered layout
 
 import { useEffect, useState } from 'react'
@@ -7,7 +7,8 @@ import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
 
 export default function Reveal() {
-  const { roomId } = useParams()
+  // La route /room/:roomId garantit la présence du paramètre
+  const { roomId = '' } = useParams<{ roomId: string }>()
   const navigate = useNavigate()
   const { results, room, socketId, amHost, requestScores, startNextRound } = useGame()
 
@@ -219,7 +220,7 @@ export default function Reveal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(() => {
               // Build cumulative score lookup by player name
-              const cumulLookup = {}
+              const cumulLookup: Record<string, number> = {}
               if (results.cumulativeScores) {
                 for (const s of results.cumulativeScores) {
                   cumulLookup[s.name] = s.total
@@ -227,7 +228,7 @@ export default function Reveal() {
               }
 
               // Build vote lookup: voterId -> target player name
-              const voteLookup = {}
+              const voteLookup: Record<string, { name: string; correct: boolean }> = {}
               if (results.votes) {
                 for (const [voterId, targetId] of Object.entries(results.votes)) {
                   const target = players.find(p => p.id === targetId)

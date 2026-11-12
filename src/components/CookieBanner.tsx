@@ -10,7 +10,7 @@ function getConsentStatus() {
   }
 }
 
-export default function CookieBanner({ onAccept }) {
+export default function CookieBanner({ onAccept }: { onAccept?: () => void }) {
   const [visible, setVisible] = useState(() => getConsentStatus() === null)
 
   if (!visible) return null

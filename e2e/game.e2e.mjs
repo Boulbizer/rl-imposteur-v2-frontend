@@ -8,7 +8,8 @@
 
 import { spawn } from 'node:child_process'
 import { createRequire } from 'node:module'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 
@@ -52,9 +53,15 @@ let browser
 let failed = false
 
 try {
-  procs.push(await start('node', ['server.js'], BACKEND_DIR, {
-    PORT: String(BACK_PORT), FRONTEND_URL: FRONT, SUPABASE_URL: '', SUPABASE_SERVICE_KEY: '', GRACE_PERIOD_MS: '30000',
-  }, 'Serveur lancé'))
+  // Backend lancé depuis ses sources TypeScript, avec un stockage fichier
+  // pour que les salles survivent au redémarrage simulé plus bas.
+  const roomsFile = path.join(mkdtempSync(path.join(tmpdir(), 'rl-e2e-')), 'rooms.json')
+  const startBackend = () => start(process.execPath, ['--import', 'tsx', 'src/server.ts'], BACKEND_DIR, {
+    PORT: String(BACK_PORT), FRONTEND_URL: FRONT, SUPABASE_URL: '', SUPABASE_SERVICE_KEY: '',
+    ROOMS_FILE: roomsFile, GRACE_PERIOD_MS: '30000',
+  }, 'Serveur lancé')
+  let backend = await startBackend()
+  procs.push(backend)
   procs.push(await start(process.execPath, [path.join(ROOT, 'node_modules/vite/bin/vite.js'), '--port', String(FRONT_PORT), '--strictPort'], ROOT, {
     VITE_BACKEND_URL: `http://localhost:${BACK_PORT}`,
   }, 'Local:'))
@@ -68,6 +75,12 @@ try {
     const frames = []
     // On capture TOUS les messages WebSocket reçus pour détecter une fuite
     page.on('websocket', ws => ws.on('framereceived', f => frames.push(String(f.payload))))
+    // Socket.IO commence en long-polling HTTP avant de passer en WebSocket :
+    // ces réponses comptent aussi comme messages reçus
+    page.on('response', async res => {
+      if (!res.url().includes('/socket.io/') || res.request().method() !== 'GET') return
+      try { frames.push(await res.text()) } catch { /* réponse interrompue */ }
+    })
     page.on('pageerror', err => { console.error(`\n[${name}] erreur JS : ${err.message}`); failed = true })
     players.push({ name, context, page, frames })
   }
@@ -146,6 +159,23 @@ try {
     await g.page.reload()
     await g.page.getByText(g.isImpostor ? "Tu es l'Imposteur" : 'Tu es Équipier').waitFor()
     await host.page.waitForTimeout(500)
+  })
+
+  await check('le serveur plante en pleine partie : tout le monde revient tout seul', async () => {
+    const before = players.map(p => p.frames.length)
+    backend.kill('SIGKILL')
+    await new Promise(r => setTimeout(r, 1000))
+    backend = await startBackend()
+    procs.push(backend)
+    // Chaque navigateur doit se reconnecter et être reconnu grâce à son jeton
+    for (const [i, p] of players.entries()) {
+      const deadline = Date.now() + 20_000
+      while (!p.frames.slice(before[i]).some(f => f.includes('"room:rejoined"'))) {
+        if (Date.now() > deadline) throw new Error(`${p.name} ne s'est pas reconnecté. Reçu : ${p.frames.slice(before[i]).map(f => f.slice(0, 120)).join(' | ')} — URL ${p.page.url()}`)
+        await p.page.waitForTimeout(200)
+      }
+      await p.page.getByText(p.isImpostor ? "Tu es l'Imposteur" : 'Tu es Équipier').waitFor()
+    }
   })
 
   await check('fin du match : tout le monde vote', async () => {
