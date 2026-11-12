@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
+import Countdown from '../components/Countdown'
 
 export default function Vote() {
   // La route /room/:roomId garantit la présence du paramètre
@@ -57,6 +58,9 @@ export default function Vote() {
         }}>
           Désignez le joueur que vous soupçonnez
         </p>
+        <div style={{ marginTop: '0.75rem' }}>
+          <Countdown endsAt={room.phaseEndsAt} label="Fin du vote" />
+        </div>
       </div>
 
       {/* 2. Progress indicator */}

@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGame } from '../hooks/useGame'
 import Avatar from '../components/Avatar'
+import SettingsPanel from '../components/SettingsPanel'
 
 const MAX_PLAYERS = 10
 
 export default function Lobby() {
   // La route /room/:roomId garantit la présence du paramètre
   const { roomId = '' } = useParams<{ roomId: string }>()
-  const { room, myName, myId, joinRoom, startGame, error, setError, loading } = useGame()
+  const { room, myName, myId, joinRoom, startGame, updateSettings, error, setError, loading } = useGame()
 
   const [nameInput, setNameInput] = useState('')
   const [copied, setCopied] = useState(false)
@@ -315,11 +316,11 @@ export default function Lobby() {
             <button
               className="btn btn-primary"
               onClick={() => startGame(room.id)}
-              disabled={players.length < 2}
+              disabled={players.length < 2 || loading}
             >
               {players.length < 2
                 ? "En attente d'un autre joueur…"
-                : 'Lancer la partie'}
+                : loading ? 'Préparation des missions…' : 'Lancer la partie'}
             </button>
           ) : (
             <span style={{
@@ -334,6 +335,8 @@ export default function Lobby() {
       </div>
 
       {/* ── Sidebar ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <SettingsPanel room={room} editable={isHost} onChange={patch => updateSettings(room.id, patch)} />
       <div className="glass" style={{
         borderRadius: 'var(--radius-lg)',
         padding: '1.75rem',
@@ -348,11 +351,11 @@ export default function Lobby() {
           gap: '0.85rem',
         }}>
           {[
-            { icon: '🎭', text: "Un imposteur secret est désigné au lancement" },
+            { icon: '🎭', text: "Chacun reçoit un rôle et une mission secrète" },
             { icon: '🚗', text: "Jouez votre partie Rocket League normalement" },
             { icon: '🕵️', text: "L'imposteur doit faire perdre son équipe discrètement" },
-            { icon: '🗳️', text: "À la fin : tout le monde vote pour désigner l'imposteur" },
-            { icon: '🏆', text: "Bons votants +2 pts · Imposteur non découvert +3 pts" },
+            { icon: '🗣️', text: "À la fin : débat et accusations, puis vote" },
+            { icon: '🏆', text: "Bon vote +2 (Détective +3) · Imposteur non découvert +3 · Bouffon désigné +4" },
           ].map(({ icon, text }) => (
             <li key={text} style={{
               display: 'flex',
@@ -368,6 +371,7 @@ export default function Lobby() {
             </li>
           ))}
         </ul>
+      </div>
       </div>
     </div>
   )

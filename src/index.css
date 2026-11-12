@@ -26,6 +26,13 @@
   --red:            #ef4444;
   --green:          #22c55e;
 
+  /* Alias sémantiques (utilisés par les pages, absents jusqu'ici) */
+  --accent-violet:  var(--violet);
+  --accent-green:   var(--green);
+  --accent-orange:  var(--orange);
+  --impostor-red:   #dc2626;
+  --safe-blue:      #2563eb;
+
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, var(--blue), var(--violet));
   --gradient-host:    linear-gradient(135deg, var(--violet), var(--pink));
@@ -147,6 +154,13 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* Les pages ne rétrécissent jamais à la hauteur de l'écran : elles grandissent
+   avec leur contenu et la page défile. Sans ça, un contenu plus haut que
+   l'écran était écrasé (cartes en overflow: hidden coupées). */
+#root > * {
+  flex-shrink: 0;
 }
 
 /* ─── TYPOGRAPHY ────────────────────────────────────── */

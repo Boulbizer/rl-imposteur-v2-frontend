@@ -59,7 +59,7 @@ try {
   const roomsFile = path.join(mkdtempSync(path.join(tmpdir(), 'rl-e2e-')), 'rooms.json')
   const startBackend = () => start(process.execPath, ['--import', 'tsx', 'src/server.ts'], BACKEND_DIR, {
     PORT: String(BACK_PORT), FRONTEND_URL: FRONT, SUPABASE_URL: '', SUPABASE_SERVICE_KEY: '',
-    ROOMS_FILE: roomsFile, GRACE_PERIOD_MS: '30000',
+    ROOMS_FILE: roomsFile, GRACE_PERIOD_MS: '30000', MISSIONS_PROVIDER: 'offline',
   }, 'Serveur lancé')
   let backend = await startBackend()
   procs.push(backend)
@@ -131,24 +131,40 @@ try {
   })
 
   let impostor
-  await check("l'hôte lance la partie : un seul imposteur, rôle visible par lui seul", async () => {
+  await check("réglages : l'hôte choisit le mode, les invités le voient sans pouvoir le changer", async () => {
+    await host.page.getByTestId('setting-mode').selectOption('hoops')
+    for (const g of guests) {
+      await g.page.waitForFunction(() => document.querySelector('[data-testid="setting-mode"]')?.value === 'hoops')
+      assert.equal(await g.page.getByTestId('setting-mode').isDisabled(), true)
+    }
+    await shot(host, 'reglages')
+  })
+
+  await check("l'hôte lance la partie : 1 imposteur, 1 bouffon, chacun avec sa mission secrète", async () => {
     await host.page.getByRole('button', { name: 'Lancer la partie' }).click()
     for (const p of players) {
       await p.page.waitForURL(/\/playing$/)
-      await p.page.getByText(/Tu es l'Imposteur|Tu es Équipier/).waitFor()
-      p.isImpostor = await p.page.getByText("Tu es l'Imposteur").isVisible()
+      p.roleTitle = (await p.page.getByTestId('role-title').innerText()).trim()
+      p.isImpostor = p.roleTitle === "Tu es l'Imposteur"
+      p.mission = (await p.page.getByTestId('mission-text').innerText()).trim()
+      assert.ok(p.mission.length > 10 && !/MISSION/i.test(p.mission), `${p.name} : mission illisible « ${p.mission} »`)
     }
-    const impostors = players.filter(p => p.isImpostor)
-    assert.equal(impostors.length, 1)
-    impostor = impostors[0]
+    const titles = players.map(p => p.roleTitle).sort()
+    assert.deepEqual(titles, ["Tu es Équipier", "Tu es Équipier", "Tu es l'Imposteur", 'Tu es le Bouffon'].sort())
+    impostor = players.find(p => p.isImpostor)
+    await impostor.page.waitForTimeout(800) // fin de l'animation d'apparition avant la capture
     await shot(impostor, 'role-imposteur')
-    await shot(players.find(p => !p.isImpostor), 'role-equipier')
+    await shot(players.find(p => p.roleTitle === 'Tu es le Bouffon'), 'role-bouffon')
   })
 
-  await check("aucun message reçu par le navigateur ne contient l'imposteur", async () => {
+  await check("aucun message reçu ne révèle l'imposteur, les rôles ou les missions des autres", async () => {
     for (const p of players) {
       for (const frame of p.frames) {
         assert.ok(!frame.includes('impostorId'), `${p.name} a reçu : ${frame.slice(0, 200)}`)
+        assert.ok(!frame.includes('"roles"') && !frame.includes('"missions"'), `${p.name} a reçu les rôles de tous`)
+        for (const other of players) {
+          if (other !== p) assert.ok(!frame.includes(other.mission), `${p.name} a reçu la mission de ${other.name}`)
+        }
       }
       const stored = await p.page.evaluate(() => JSON.stringify(sessionStorage))
       assert.ok(!stored.includes('impostorId'), `sessionStorage de ${p.name} contient impostorId`)
@@ -158,7 +174,8 @@ try {
   await check('un joueur qui recharge la page retrouve son rôle (jeton de session)', async () => {
     const g = guests[1]
     await g.page.reload()
-    await g.page.getByText(g.isImpostor ? "Tu es l'Imposteur" : 'Tu es Équipier').waitFor()
+    await g.page.getByText(g.roleTitle).waitFor()
+    await g.page.getByText(g.mission).waitFor()
     await host.page.waitForTimeout(500)
   })
 
@@ -175,12 +192,28 @@ try {
         if (Date.now() > deadline) throw new Error(`${p.name} ne s'est pas reconnecté. Reçu : ${p.frames.slice(before[i]).map(f => f.slice(0, 120)).join(' | ')} — URL ${p.page.url()}`)
         await p.page.waitForTimeout(200)
       }
-      await p.page.getByText(p.isImpostor ? "Tu es l'Imposteur" : 'Tu es Équipier').waitFor()
+      await p.page.getByText(p.roleTitle).waitFor()
     }
   })
 
-  await check('fin du match : tout le monde vote', async () => {
+  await check('fin du match : débat, une accusation visible par tous', async () => {
     await host.page.getByRole('button', { name: 'Fin du match' }).click()
+    for (const p of players) {
+      await p.page.waitForURL(/\/debate$/)
+      await p.page.getByTestId('countdown').waitFor()
+    }
+    const accuser = players.find(p => p !== impostor)
+    await accuser.page.getByTestId('accuse-target').filter({ hasText: impostor.name }).click()
+    await accuser.page.getByPlaceholder(/Pourquoi/).fill('Il a raté trois dégagements')
+    await accuser.page.getByRole('button', { name: `Accuser ${impostor.name}` }).click()
+    for (const p of players) {
+      await p.page.getByTestId('accusation').filter({ hasText: 'Il a raté trois dégagements' }).waitFor()
+    }
+    await shot(host, 'debat')
+  })
+
+  await check("l'hôte ouvre le vote : tout le monde vote", async () => {
+    await host.page.getByRole('button', { name: 'Passer au vote maintenant' }).click()
     for (const p of players) await p.page.waitForURL(/\/vote$/)
     await shot(host, 'vote')
     for (const p of players) {
@@ -200,6 +233,16 @@ try {
       await p.page.getByText(`${impostor.name} !`).first().waitFor()
     }
     await shot(host, 'revelation')
+  })
+
+  await check('récapitulatif : rôles et missions de chacun révélés', async () => {
+    for (const p of players) {
+      await p.page.getByText('Rôles et missions').waitFor({ timeout: 15_000 })
+      assert.equal(await p.page.getByTestId('role-recap').count(), players.length)
+      for (const other of players) await p.page.getByText(other.mission).first().waitFor()
+    }
+    await host.page.getByText('Rôles et missions').scrollIntoViewIfNeeded()
+    await shot(host, 'recap')
   })
 
   await check("seul l'hôte passe à la manche suivante, tout le monde revient au lobby", async () => {

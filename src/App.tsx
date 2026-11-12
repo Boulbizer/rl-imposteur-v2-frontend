@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Lobby from './pages/Lobby'
 import Playing from './pages/Playing'
+import Debate from './pages/Debate'
 import Vote from './pages/Vote'
 import Reveal from './pages/Reveal'
 import Scores from './pages/Scores'
@@ -28,6 +29,7 @@ export default function App() {
 
         {/* Écrans de jeu (accessibles via l'état interne après avoir rejoint) */}
         <Route path="/room/:roomId/playing" element={<Playing />} />
+        <Route path="/room/:roomId/debate"  element={<Debate />} />
         <Route path="/room/:roomId/vote"    element={<Vote />} />
         <Route path="/room/:roomId/reveal"  element={<Reveal />} />
         <Route path="/room/:roomId/scores"  element={<Scores />} />
