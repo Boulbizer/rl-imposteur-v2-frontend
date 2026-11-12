@@ -193,7 +193,10 @@ try {
 
   await check("révélation : l'imposteur est démasqué chez tous les joueurs", async () => {
     for (const p of players) {
-      await p.page.waitForURL(/\/reveal$/)
+      await p.page.waitForURL(/\/reveal$/, { timeout: 15_000 }).catch(err => {
+        const last = p.frames.slice(-8).map(f => f.slice(0, 160)).join('\n      ')
+        throw new Error(`${p.name} bloqué sur ${p.page.url()}\n      ${last}\n${err.message}`)
+      })
       await p.page.getByText(`${impostor.name} !`).first().waitFor()
     }
     await shot(host, 'revelation')
