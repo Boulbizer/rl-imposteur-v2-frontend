@@ -31,7 +31,8 @@ function start(cmd, args, cwd, env, readyText) {
     let out = ''
     const timer = setTimeout(() => reject(new Error(`${cmd} n'a pas démarré :\n${out}`)), 30_000)
     const onData = d => {
-      out += d
+      // Retire les codes couleur ANSI (Vite colore sa sortie en CI)
+      out += String(d).replace(/\x1b\[[0-9;]*m/g, '')
       if (out.includes(readyText)) { clearTimeout(timer); resolve(proc) }
     }
     proc.stdout.on('data', onData)
